@@ -186,14 +186,19 @@ class _MonitorScreenState extends State<MonitorScreen> {
     }
   }
 
+  bool _isCapturing = false;
+
   void _startStreaming() {
     if (_isStreaming || !_isInitialized || _socket == null) return;
 
     setState(() => _isStreaming = true);
     debugPrint("Starting Stream");
 
-    _streamTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
-      await _captureAndSendFrame();
+    // 10 FPS = 100 milliszekundum
+    _streamTimer = Timer.periodic(const Duration(milliseconds: 100), (_) async {
+      if (!_isCapturing) {
+        await _captureAndSendFrame();
+      }
     });
   }
 
@@ -209,14 +214,23 @@ class _MonitorScreenState extends State<MonitorScreen> {
   Future<void> _captureAndSendFrame() async {
     if (!_controller.value.isInitialized || !_isStreaming || _socket == null) return;
 
+    _isCapturing = true;
     try {
+      // takePicture() fájlba menti a képet a háttérben
       final picture = await _controller.takePicture();
       final bytes = await picture.readAsBytes();
+      
       if (_socket?.readyState == WebSocket.open) {
         _socket!.add(bytes);
       }
+      
+      // Töröljük a fájlt, hogy ne teljen meg a telefon tárhelye másodpercek alatt!
+      File(picture.path).delete().catchError((_) {});
+      
     } catch (e) {
       debugPrint("Failed to capture or send frame: $e");
+    } finally {
+      _isCapturing = false;
     }
   }
 
