@@ -1,44 +1,51 @@
 import argparse
 import uvicorn
+import os
+import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from typing import List
+
+from manager import manager
+from api_routes import router as zones_router
+from tasks import cleanup_old_images
+from vision import process_and_save_frame
 
 app = FastAPI()
 
-class ConnectionManager:
-    def __init__(self):
-        # Store active websocket connections
-        self.active_connections: List[WebSocket] = []
+app.include_router(zones_router)
 
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(cleanup_old_images())
 
-    def disconnect(self, websocket: WebSocket):
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-
-    async def broadcast_bytes(self, data: bytes):
-        """Sends binary data (like a camera frame) to all connected clients."""
-        for connection in self.active_connections:
-            await connection.send_bytes(data)
-
-manager = ConnectionManager()
+SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
 
 @app.get("/")
 def read_root():
     return {"message": "PetTrack server is running"}
 
 @app.websocket("/ws")
-async def tracker_websocket(websocket: WebSocket):
+async def tracker_websocket(websocket: WebSocket, token: str = None):
+    if token != SECRET_TOKEN:
+        print(f"Connection rejected: Invalid token '{token}'")
+        await websocket.close(code=1008)
+        return
+    
     monitor_id = "flutter_client"
     await manager.connect(websocket)
     print(f"Monitor {monitor_id} connected!")
 
+    frame_counter = 0
+
     try:
         while True:
             data = await websocket.receive_bytes()
-            print(f'Received camera frame from {monitor_id}: {len(data)} bytes')            
+            frame_counter += 1
+            if frame_counter % 10 == 0:
+                print(f"Received camera frame from {monitor_id}: {len(data)} bytes", flush=True)
+
+            if frame_counter % 30 == 0:
+                asyncio.create_task(process_and_save_frame(data))
+    
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         print(f"Monitor {monitor_id} disconnected normally.")
@@ -52,8 +59,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     log_level = "debug" if args.verbose else "info"
-    
+
     if args.verbose:
-        print("Verbose logging enabled. Setting uvicorn log level to 'debug'.")
-        
-uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level=log_level, reload=True)
+        print("Verbose logging enabled, setting uvicorn log level to 'debug'.")
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level=log_level, reload=True)
