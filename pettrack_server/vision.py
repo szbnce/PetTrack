@@ -20,7 +20,7 @@ async def process_and_save_frame(image_bytes: bytes):
         print("Failed to decode image")
         return
 
-    height, width, _ = img.shape[:2]
+    height, width = img.shape[:2]
     cx, cy = int(width / 2), int(height / 2)
     pet_center = (cx, cy)
 
