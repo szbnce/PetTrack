@@ -172,6 +172,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
       );
 
       await _controller.initialize();
+      await _controller.setFlashMode(FlashMode.off);
       if (!mounted) return;
       setState(() => _isInitialized = true);
     } catch (e) {
