@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 // KIVÁGTUK A FRANCBA A WEB SOCKET CHANNEL IMPORTOT! 🗑️
 
 late List<CameraDescription> _cameras;
@@ -39,6 +40,7 @@ class SetupScreen extends StatefulWidget {
 
 class _SetupScreenState extends State<SetupScreen> {
   final TextEditingController _ipController = TextEditingController();
+  final TextEditingController _tokenController = TextEditingController();
 
   @override
   void initState() {
@@ -49,19 +51,24 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _loadSavedIp() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _ipController.text = prefs.getString('server_ip') ?? '192.168.1.100:8080';
+      _ipController.text = prefs.getString('server_ip') ?? '127.0.0.1:8000';
+      _tokenController.text = prefs.getString('server_token') ?? 'MYSUPERSECRETTOKEN';
     });
   }
 
   Future<void> _saveAndStart() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('server_ip', _ipController.text);
+    await prefs.setString('server_token', _tokenController.text);
 
     if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MonitorScreen(serverIp: _ipController.text),
+        builder: (context) => MonitorScreen(
+          serverIp: _ipController.text,
+          token: _tokenController.text,
+        ),
       ),
     );
   }
@@ -102,6 +109,16 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
               keyboardType: TextInputType.url,
             ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: _tokenController,
+              decoration: const InputDecoration(
+                labelText: 'Security Token',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.security),
+              ),
+              obscureText: true,
+            ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _saveAndStart,
@@ -122,7 +139,8 @@ class _SetupScreenState extends State<SetupScreen> {
 // MonitorScreen 
 class MonitorScreen extends StatefulWidget {
   final String serverIp;
-  const MonitorScreen({super.key, required this.serverIp});
+  final String token;
+  const MonitorScreen({super.key, required this.serverIp, required this.token});
 
   @override
   State<MonitorScreen> createState() => _MonitorScreenState();
@@ -135,6 +153,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
   WebSocket? _socket;
   bool _isInitialized = false;
   bool _isStreaming = false;
+  bool _isSleeping = false;
   Timer? _streamTimer;
 
   @override
@@ -164,7 +183,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
   Future<void> _connectWebSocket() async {
     try {
       debugPrint("Connecting to ws://${widget.serverIp}/ws");
-      _socket = await WebSocket.connect('ws://${widget.serverIp}/ws');
+      _socket = await WebSocket.connect('ws://${widget.serverIp}/ws?token=${widget.token}');
       debugPrint("Connected successfully!");
 
       // Figyeljük a szerver utasításait
@@ -192,6 +211,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
     if (_isStreaming || !_isInitialized || _socket == null) return;
 
     setState(() => _isStreaming = true);
+    WakelockPlus.enable();
     debugPrint("Starting Stream");
 
     // 10 FPS = 100 milliszekundum
@@ -207,7 +227,11 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
     _streamTimer?.cancel();
     _streamTimer = null;
-    setState(() => _isStreaming = false);
+    setState(() {
+      _isStreaming = false;
+      _isSleeping = false;
+    });
+    WakelockPlus.disable();
     debugPrint("Stopping Stream");
   }
 
@@ -244,10 +268,33 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isSleeping) {
+      return GestureDetector(
+        onDoubleTap: () => setState(() => _isSleeping = false),
+        child: const Scaffold(
+          backgroundColor: Colors.black,
+          body: Center(
+            child: Text(
+              'Sleeping... Double tap to wake',
+              style: TextStyle(color: Colors.white24, fontSize: 12),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('🐾 Monitor'),
         backgroundColor: Colors.red[900],
+        actions: [
+          if (_isStreaming)
+            IconButton(
+              icon: const Icon(Icons.bedtime),
+              tooltip: 'Sleep Mode (Dim Screen)',
+              onPressed: () => setState(() => _isSleeping = true),
+            ),
+        ],
       ),
       body: _isInitialized
           ? Column(
