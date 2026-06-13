@@ -2,20 +2,52 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-// KIVÁGTUK A FRANCBA A WEB SOCKET CHANNEL IMPORTOT! 🗑️
+import 'package:flutter/services.dart';
+import 'dart:ui' as ui;
 
 late List<CameraDescription> _cameras;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   _cameras = await availableCameras();
-  runApp(const PetTrackApp());
+
+  final prefs = await SharedPreferences.getInstance();
+  final savedIp = prefs.getString('server_ip');
+  final savedToken = prefs.getString('server_token');
+
+  final bool skipSetup = savedIp != null && savedIp.isNotEmpty;
+
+  runApp(
+    PetTrackApp(
+      skipSetup: skipSetup,
+      initialIp: savedIp,
+      initialToken: savedToken,
+    ),
+  );
 }
 
 class PetTrackApp extends StatelessWidget {
-  const PetTrackApp({super.key});
+  final bool skipSetup;
+  final String? initialIp;
+  final String? initialToken;
+
+  const PetTrackApp({
+    super.key,
+    required this.skipSetup,
+    this.initialIp,
+    this.initialToken,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,12 +57,15 @@ class PetTrackApp extends StatelessWidget {
         primaryColor: Colors.red[900],
         scaffoldBackgroundColor: const Color(0xFF121212),
       ),
-      home: const SetupScreen(),
+
+      home: skipSetup
+          ? MonitorScreen(serverIp: initialIp!, token: initialToken!)
+          : const SetupScreen(),
     );
   }
 }
 
-// SetupScreen 
+// SetupScreen
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
 
@@ -52,7 +87,8 @@ class _SetupScreenState extends State<SetupScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _ipController.text = prefs.getString('server_ip') ?? '127.0.0.1:8000';
-      _tokenController.text = prefs.getString('server_token') ?? 'MYSUPERSECRETTOKEN';
+      _tokenController.text =
+          prefs.getString('server_token') ?? 'MYSUPERSECRETTOKEN';
     });
   }
 
@@ -62,7 +98,7 @@ class _SetupScreenState extends State<SetupScreen> {
     await prefs.setString('server_token', _tokenController.text);
 
     if (!mounted) return;
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => MonitorScreen(
@@ -70,6 +106,7 @@ class _SetupScreenState extends State<SetupScreen> {
           token: _tokenController.text,
         ),
       ),
+      (route) => false,
     );
   }
 
@@ -80,63 +117,78 @@ class _SetupScreenState extends State<SetupScreen> {
         title: const Text('🐾 PetTrack Setup'),
         backgroundColor: Colors.red[900],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Icon(Icons.warning_amber_rounded, size: 60, color: Colors.orange),
-            const SizedBox(height: 10),
-            const Text(
-              'Next step',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orange),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 60,
+                  color: Colors.orange,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Next step',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Before you start this, go out from the app, go into the app information and turn on Autostart for this to work!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 40),
+                TextField(
+                  controller: _ipController,
+                  decoration: const InputDecoration(
+                    labelText: 'Backend server IP and Port',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.computer),
+                  ),
+                  keyboardType: TextInputType.url,
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: _tokenController,
+                  decoration: const InputDecoration(
+                    labelText: 'Security Token',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.security),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: _saveAndStart,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[900],
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text(
+                    'Save & Start',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            const Text(
-              'Before you start this, go out from the app, go into the app information and turn on Autostart for this to work!',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 40),
-            TextField(
-              controller: _ipController,
-              decoration: const InputDecoration(
-                labelText: 'Backend Server IP and Port',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.computer),
-              ),
-              keyboardType: TextInputType.url,
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: _tokenController,
-              decoration: const InputDecoration(
-                labelText: 'Security Token',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.security),
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _saveAndStart,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[900],
-                padding: const EdgeInsets.symmetric(vertical: 15),
-              ),
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Start MONITOR', style: TextStyle(fontSize: 18)),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-// MonitorScreen 
+// MonitorScreen
 class MonitorScreen extends StatefulWidget {
   final String serverIp;
   final String token;
@@ -148,13 +200,14 @@ class MonitorScreen extends StatefulWidget {
 
 class _MonitorScreenState extends State<MonitorScreen> {
   late CameraController _controller;
-  
+
   // Itt jön a natív mágia a Channel helyett! 🔌
   WebSocket? _socket;
   bool _isInitialized = false;
   bool _isStreaming = false;
   bool _isSleeping = false;
   Timer? _streamTimer;
+  final GlobalKey _previewKey = GlobalKey();
 
   @override
   void initState() {
@@ -167,8 +220,9 @@ class _MonitorScreenState extends State<MonitorScreen> {
     try {
       _controller = CameraController(
         _cameras[0],
-        ResolutionPreset.low,
+        ResolutionPreset.medium,
         enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
       );
 
       await _controller.initialize();
@@ -184,23 +238,29 @@ class _MonitorScreenState extends State<MonitorScreen> {
   Future<void> _connectWebSocket() async {
     try {
       debugPrint("Connecting to ws://${widget.serverIp}/ws");
-      _socket = await WebSocket.connect('ws://${widget.serverIp}/ws?token=${widget.token}');
+      _socket = await WebSocket.connect(
+        'ws://${widget.serverIp}/ws?token=${widget.token}',
+      );
       debugPrint("Connected successfully!");
 
       // Figyeljük a szerver utasításait
-      _socket!.listen((message) {
-        if (message == "START") {
-          _startStreaming();
-        } else if (message == "STOP") {
+      _socket!.listen(
+        (message) {
+          if (message == "START") {
+            _startStreaming();
+          } else if (message == "STOP") {
+            _stopStreaming();
+          }
+        },
+        onDone: () {
+          debugPrint("Server disconnected!");
           _stopStreaming();
-        }
-      }, onDone: () {
-        debugPrint("Server disconnected!");
-        _stopStreaming();
-      }, onError: (error) {
-        debugPrint("WebSocket error: $error");
-        _stopStreaming();
-      });
+        },
+        onError: (error) {
+          debugPrint("WebSocket error: $error");
+          _stopStreaming();
+        },
+      );
     } catch (e) {
       debugPrint("Failed to connect: $e");
     }
@@ -209,14 +269,14 @@ class _MonitorScreenState extends State<MonitorScreen> {
   bool _isCapturing = false;
 
   void _startStreaming() {
-    if (_isStreaming || !_isInitialized || _socket == null) return;
+    if (_isStreaming || !_isInitialized) return;
 
     setState(() => _isStreaming = true);
     WakelockPlus.enable();
     debugPrint("Starting Stream");
 
     // 10 FPS = 100 milliszekundum
-    _streamTimer = Timer.periodic(const Duration(milliseconds: 100), (_) async {
+    _streamTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
       if (!_isCapturing) {
         await _captureAndSendFrame();
       }
@@ -237,23 +297,31 @@ class _MonitorScreenState extends State<MonitorScreen> {
   }
 
   Future<void> _captureAndSendFrame() async {
-    if (!_controller.value.isInitialized || !_isStreaming || _socket == null) return;
+    if (!_controller.value.isInitialized || !_isStreaming || _socket == null)
+      return;
 
     _isCapturing = true;
     try {
-      // takePicture() fájlba menti a képet a háttérben
-      final picture = await _controller.takePicture();
-      final bytes = await picture.readAsBytes();
-      
-      if (_socket?.readyState == WebSocket.open) {
-        _socket!.add(bytes);
+      final RenderRepaintBoundary? boundary =
+          _previewKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+
+      if (boundary == null) {
+        _isCapturing = false;
+        return;
       }
-      
-      // Töröljük a fájlt, hogy ne teljen meg a telefon tárhelye másodpercek alatt!
-      File(picture.path).delete().catchError((_) {});
-      
+
+      final ui.Image image = await boundary.toImage(pixelRatio: 0.5);
+
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+
+      if (byteData != null && _socket?.readyState == WebSocket.open) {
+        _socket!.add(byteData.buffer.asUint8List());
+      }
     } catch (e) {
-      debugPrint("Failed to capture or send frame: $e");
+      debugPrint("Screenshot failed: $e");
     } finally {
       _isCapturing = false;
     }
@@ -295,51 +363,109 @@ class _MonitorScreenState extends State<MonitorScreen> {
               tooltip: 'Sleep Mode (Dim Screen)',
               onPressed: () => setState(() => _isSleeping = true),
             ),
+
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'settings') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SetupScreen()),
+                );
+              } else if (value == 'about') {
+                showAboutDialog(
+                  context: context,
+                  applicationName: 'PetTrack Monitor',
+                  applicationVersion: 'Alpha',
+                  applicationIcon: const Icon(
+                    Icons.pets,
+                    size: 50,
+                    color: Colors.orange,
+                  ),
+                  children: [
+                    const Text(
+                      'This app securely streams your camera feed to the PetTrack backend for analysis.',
+                    ),
+                  ],
+                );
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem(value: 'settings', child: Text('Settings')),
+                const PopupMenuItem(value: 'about', child: Text('About')),
+              ];
+            },
+          ),
         ],
       ),
       body: _isInitialized
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          ? Row(
               children: [
-                AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: CameraPreview(_controller),
+                Expanded(
+                  flex: 3,
+                  child: Center(child: CameraPreview(_controller)),
                 ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        _isStreaming ? 'Streaming live video...' : 'Waiting for START command...',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: _isStreaming ? null : _startStreaming,
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                            child: const Text('Start'),
+
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          _isStreaming
+                              ? 'Streaming live video...'
+                              : 'Waiting for START command...',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: _isStreaming ? null : _startStreaming,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 15,
+                                ),
+                              ),
+                              child: const Text(
+                                'Start',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: _isStreaming ? _stopStreaming : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 15,
+                                ),
+                              ),
+                              child: const Text(
+                                'stop',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Server:\n${widget.serverIp}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
                           ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: _isStreaming ? _stopStreaming : null,
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                            child: const Text('Stop'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Server: ${widget.serverIp}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 14, color: Colors.white70),
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
