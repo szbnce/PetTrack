@@ -1,18 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+// KIVÁGTUK A FRANCBA A WEB SOCKET CHANNEL IMPORTOT! 🗑️
 
-// Globális változó a kameráknak
 late List<CameraDescription> _cameras;
 
 Future<void> main() async {
-  // Ez kötelező, ha a runApp előtt hardveres dolgokat (pl. kamera) inicializálsz!
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Lekérjük az elérhető kamerákat a telefonon
   _cameras = await availableCameras();
-  
   runApp(const PetTrackApp());
 }
 
@@ -23,108 +20,269 @@ class PetTrackApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PetTrack Monitor',
-      theme: ThemeData.dark(), // Szigorúan sötét mód, kíméljük az akksit!
-      home: const CameraScreen(),
+      theme: ThemeData.dark().copyWith(
+        primaryColor: Colors.red[900],
+        scaffoldBackgroundColor: const Color(0xFF121212),
+      ),
+      home: const SetupScreen(),
     );
   }
 }
 
-class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
+// SetupScreen 
+class SetupScreen extends StatefulWidget {
+  const SetupScreen({super.key});
 
   @override
-  State<CameraScreen> createState() => _CameraScreenState();
+  State<SetupScreen> createState() => _SetupScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
-  late CameraController _controller;
-  bool _isCameraInitialized = false;
+class _SetupScreenState extends State<SetupScreen> {
+  final TextEditingController _ipController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Kiválasztjuk a legelső (általában a hátsó) kamerát
-    _controller = CameraController(
-      _cameras[0], 
-      ResolutionPreset.medium, // Nem kell 4K, elég a közepes felbontás!
-      enableAudio: false,      // A nyúl úgyse beszél, felesleges a mikrofon
-    );
+    _loadSavedIp();
+  }
 
-    _controller.initialize().then((_) {
-      if (!mounted) return;
-      setState(() {
-        _isCameraInitialized = true;
-      });
-    }).catchError((Object e) {
-      if (e is CameraException) {
-        print("Kamera hiba: ${e.description}");
-      }
+  Future<void> _loadSavedIp() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _ipController.text = prefs.getString('server_ip') ?? '192.168.1.100:8080';
     });
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  Future<void> _saveAndStart() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('server_ip', _ipController.text);
 
-  // Ez a függvény lövi a képet az API-nak
-  Future<void> sendFrameToApi() async {
-    if (!_controller.value.isInitialized) return;
-
-    try {
-      // 1. Lő egy képet
-      final XFile image = await _controller.takePicture();
-      final File file = File(image.path);
-
-      // 2. Ide jön majd a Backend IP címed!
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('http://192.168.1.100:8080/upload-frame'),
-      );
-
-      // 3. Hozzácsapjuk a fájlt a kéréshez
-      request.files.add(
-        await http.MultipartFile.fromPath('frame', file.path),
-      );
-
-      // 4. Elküldjük és várjuk a csodát
-      print("Küldés folyamatban...");
-      var response = await request.send();
-
-      if (response.statusCode == 200) {
-        print("Sikeres küldés a backendnek! 🐰🚀");
-      } else {
-        print("A szerver elhajtott: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Hálózati hiba (valószínűleg nem fut a backend): $e");
-    }
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MonitorScreen(serverIp: _ipController.text),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('PetTrack Monitor MVP'),
+        title: const Text('🐾 PetTrack Setup'),
         backgroundColor: Colors.red[900],
       ),
-      body: Center(
-        child: _isCameraInitialized
-            ? AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: CameraPreview(_controller),
-              )
-            : const CircularProgressIndicator(color: Colors.red),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Icon(Icons.warning_amber_rounded, size: 60, color: Colors.orange),
+            const SizedBox(height: 10),
+            const Text(
+              'Next step',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orange),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Before you start this, go out from the app, go into the app information and turn on Autostart for this to work!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 40),
+            TextField(
+              controller: _ipController,
+              decoration: const InputDecoration(
+                labelText: 'Backend Server IP and Port',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.computer),
+              ),
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _saveAndStart,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[900],
+                padding: const EdgeInsets.symmetric(vertical: 15),
+              ),
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Start MONITOR', style: TextStyle(fontSize: 18)),
+            ),
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: sendFrameToApi,
-        label: const Text('Kép küldése az API-ra!'),
-        icon: const Icon(Icons.send),
-        backgroundColor: Colors.red,
+    );
+  }
+}
+
+// MonitorScreen 
+class MonitorScreen extends StatefulWidget {
+  final String serverIp;
+  const MonitorScreen({super.key, required this.serverIp});
+
+  @override
+  State<MonitorScreen> createState() => _MonitorScreenState();
+}
+
+class _MonitorScreenState extends State<MonitorScreen> {
+  late CameraController _controller;
+  
+  // Itt jön a natív mágia a Channel helyett! 🔌
+  WebSocket? _socket;
+  bool _isInitialized = false;
+  bool _isStreaming = false;
+  Timer? _streamTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+    _connectWebSocket();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      _controller = CameraController(
+        _cameras[0],
+        ResolutionPreset.low,
+        enableAudio: false,
+      );
+
+      await _controller.initialize();
+      if (!mounted) return;
+      setState(() => _isInitialized = true);
+    } catch (e) {
+      debugPrint('Camera initialization failed: $e');
+    }
+  }
+
+  // Ez a függvény mostantól async, és a natív Socketet használja!
+  Future<void> _connectWebSocket() async {
+    try {
+      debugPrint("Connecting to ws://${widget.serverIp}/ws");
+      _socket = await WebSocket.connect('ws://${widget.serverIp}/ws');
+      debugPrint("Connected successfully!");
+
+      // Figyeljük a szerver utasításait
+      _socket!.listen((message) {
+        if (message == "START") {
+          _startStreaming();
+        } else if (message == "STOP") {
+          _stopStreaming();
+        }
+      }, onDone: () {
+        debugPrint("Server disconnected!");
+        _stopStreaming();
+      }, onError: (error) {
+        debugPrint("WebSocket error: $error");
+        _stopStreaming();
+      });
+    } catch (e) {
+      debugPrint("Failed to connect: $e");
+    }
+  }
+
+  void _startStreaming() {
+    if (_isStreaming || !_isInitialized || _socket == null) return;
+
+    setState(() => _isStreaming = true);
+    debugPrint("Starting Stream");
+
+    _streamTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      await _captureAndSendFrame();
+    });
+  }
+
+  void _stopStreaming() {
+    if (!_isStreaming) return;
+
+    _streamTimer?.cancel();
+    _streamTimer = null;
+    setState(() => _isStreaming = false);
+    debugPrint("Stopping Stream");
+  }
+
+  Future<void> _captureAndSendFrame() async {
+    if (!_controller.value.isInitialized || !_isStreaming || _socket == null) return;
+
+    try {
+      final picture = await _controller.takePicture();
+      final bytes = await picture.readAsBytes();
+      if (_socket?.readyState == WebSocket.open) {
+        _socket!.add(bytes);
+      }
+    } catch (e) {
+      debugPrint("Failed to capture or send frame: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _streamTimer?.cancel();
+    _controller.dispose();
+    _socket?.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('🐾 Monitor'),
+        backgroundColor: Colors.red[900],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: _isInitialized
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: CameraPreview(_controller),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        _isStreaming ? 'Streaming live video...' : 'Waiting for START command...',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: _isStreaming ? null : _startStreaming,
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                            child: const Text('Start'),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: _isStreaming ? _stopStreaming : null,
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                            child: const Text('Stop'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Server: ${widget.serverIp}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 14, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          : const Center(child: CircularProgressIndicator()),
     );
   }
 }
