@@ -32,7 +32,7 @@ async def tracker_websocket(websocket: WebSocket, token: str = None):
     
     monitor_id = "flutter_client"
     await manager.connect(websocket)
-    print(f"Monitor {monitor_id} connected!")
+    print(f"Monitor {monitor_id} connected!", flush=True)
 
     frame_counter = 0
 
@@ -48,10 +48,10 @@ async def tracker_websocket(websocket: WebSocket, token: str = None):
     
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-        print(f"Monitor {monitor_id} disconnected normally.")
+        print(f"Monitor {monitor_id} disconnected normally.", flush=True)
     except Exception as e:
         manager.disconnect(websocket)
-        print(f"Error: {e}")
+        print(f"Error: {e}", flush=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the PetTrack server")
