@@ -98,16 +98,22 @@ class _SetupScreenState extends State<SetupScreen> {
     await prefs.setString('server_token', _tokenController.text);
 
     if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MonitorScreen(
-          serverIp: _ipController.text,
-          token: _tokenController.text,
+
+    if (Navigator.canPop(context)) {
+      // Ha a Monitor képernyőről jöttünk, csak visszalépünk
+      Navigator.pop(context, true);
+    } else {
+      // Ha frissen indult az app, betöltjük a Monitort
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MonitorScreen(
+            serverIp: _ipController.text,
+            token: _tokenController.text,
+          ),
         ),
-      ),
-      (route) => false,
-    );
+      );
+    }
   }
 
   @override
@@ -207,11 +213,17 @@ class _MonitorScreenState extends State<MonitorScreen> {
   bool _isStreaming = false;
   bool _isSleeping = false;
   Timer? _streamTimer;
+  bool _isCapturing = false;
   final GlobalKey _previewKey = GlobalKey();
+
+  late String _currentIp;
+  late String _currentToken;
 
   @override
   void initState() {
     super.initState();
+    _currentIp = widget.serverIp;
+    _currentToken = widget.token;
     _initCamera();
     _connectWebSocket();
   }
@@ -236,11 +248,14 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
   // Ez a függvény mostantól async, és a natív Socketet használja!
   Future<void> _connectWebSocket() async {
+    if (!mounted) return;
+
     try {
-      debugPrint("Connecting to ws://${widget.serverIp}/ws");
+      debugPrint("Connecting to ws://$_currentIp/ws");
       _socket = await WebSocket.connect(
-        'ws://${widget.serverIp}/ws?token=${widget.token}',
-      );
+        'ws://$_currentIp/ws?token=$_currentToken',
+      ).timeout(const Duration(seconds: 5));
+
       debugPrint("Connected successfully!");
 
       // Figyeljük a szerver utasításait
@@ -263,10 +278,19 @@ class _MonitorScreenState extends State<MonitorScreen> {
       );
     } catch (e) {
       debugPrint("Failed to connect: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to connect to server! Check IP and Token.\nError: $e',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
-
-  bool _isCapturing = false;
 
   void _startStreaming() {
     if (_isStreaming || !_isInitialized) return;
@@ -275,7 +299,6 @@ class _MonitorScreenState extends State<MonitorScreen> {
     WakelockPlus.enable();
     debugPrint("Starting Stream");
 
-    // 10 FPS = 100 milliszekundum
     _streamTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
       if (!_isCapturing) {
         await _captureAndSendFrame();
@@ -288,6 +311,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
     _streamTimer?.cancel();
     _streamTimer = null;
+
     setState(() {
       _isStreaming = false;
       _isSleeping = false;
@@ -302,26 +326,18 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
     _isCapturing = true;
     try {
-      final RenderRepaintBoundary? boundary =
-          _previewKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
+      final file = await _controller.takePicture();
+      final bytes = await file.readAsBytes();
 
-      if (boundary == null) {
-        _isCapturing = false;
-        return;
+      if (_socket?.readyState == WebSocket.open) {
+        _socket!.add(bytes);
       }
 
-      final ui.Image image = await boundary.toImage(pixelRatio: 0.5);
-
-      final ByteData? byteData = await image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-
-      if (byteData != null && _socket?.readyState == WebSocket.open) {
-        _socket!.add(byteData.buffer.asUint8List());
-      }
+      try {
+        await File(file.path).delete();
+      } catch (_) {}
     } catch (e) {
-      debugPrint("Screenshot failed: $e");
+      debugPrint("TakePicture failed: $e");
     } finally {
       _isCapturing = false;
     }
@@ -365,12 +381,24 @@ class _MonitorScreenState extends State<MonitorScreen> {
             ),
 
           PopupMenuButton<String>(
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'settings') {
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const SetupScreen()),
                 );
+
+                // Ha visszajöttünk a beállításokból és elmentették
+                if (result == true && mounted) {
+                  final prefs = await SharedPreferences.getInstance();
+                  setState(() {
+                    _currentIp = prefs.getString('server_ip') ?? _currentIp;
+                    _currentToken =
+                        prefs.getString('server_token') ?? _currentToken;
+                  });
+                  _socket?.close();
+                  _connectWebSocket();
+                }
               } else if (value == 'about') {
                 showAboutDialog(
                   context: context,
