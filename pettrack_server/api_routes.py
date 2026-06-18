@@ -45,9 +45,9 @@ async def get_latest_frame():
     if not os.path.exists(folder):
         return {"error": "No images found"}
 
-    files = glob.glob(os.path.join(folder, "*.jpg"))
+    files = glob.glob(os.path.join(folder, "*.png"))
     if not files:
         return {"error": "No images found"}
 
     latest = max(files, key=os.path.getmtime)
-    return FileResponse(latest, media_type="image/jpeg")
+    return FileResponse(latest, media_type="image/png")

@@ -215,6 +215,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
   Timer? _streamTimer;
   bool _isCapturing = false;
   final GlobalKey _previewKey = GlobalKey();
+  final GlobalKey _cameraKey = GlobalKey();
 
   late String _currentIp;
   late String _currentToken;
@@ -232,13 +233,14 @@ class _MonitorScreenState extends State<MonitorScreen> {
     try {
       _controller = CameraController(
         _cameras[0],
-        ResolutionPreset.medium,
+        ResolutionPreset.low,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
 
       await _controller.initialize();
       await _controller.setFlashMode(FlashMode.off);
+      await _controller.setFocusMode(FocusMode.locked);
       if (!mounted) return;
       setState(() => _isInitialized = true);
     } catch (e) {
@@ -299,7 +301,9 @@ class _MonitorScreenState extends State<MonitorScreen> {
     WakelockPlus.enable();
     debugPrint("Starting Stream");
 
-    _streamTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
+    _streamTimer = Timer.periodic(const Duration(milliseconds: 2000), (
+      _,
+    ) async {
       if (!_isCapturing) {
         await _captureAndSendFrame();
       }
@@ -321,23 +325,28 @@ class _MonitorScreenState extends State<MonitorScreen> {
   }
 
   Future<void> _captureAndSendFrame() async {
-    if (!_controller.value.isInitialized || !_isStreaming || _socket == null)
+    if (!_controller.value.isInitialized || !_isStreaming || _socket == null) {
       return;
+    }
 
     _isCapturing = true;
     try {
-      final file = await _controller.takePicture();
-      final bytes = await file.readAsBytes();
+      final boundary =
+          _cameraKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
 
-      if (_socket?.readyState == WebSocket.open) {
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: 1.0);
+
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final bytes = byteData?.buffer.asUint8List();
+
+      if (bytes != null && _socket?.readyState == WebSocket.open) {
         _socket!.add(bytes);
       }
-
-      try {
-        await File(file.path).delete();
-      } catch (_) {}
     } catch (e) {
-      debugPrint("TakePicture failed: $e");
+      debugPrint("Capture Failed: $e");
     } finally {
       _isCapturing = false;
     }
@@ -431,7 +440,12 @@ class _MonitorScreenState extends State<MonitorScreen> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: Center(child: CameraPreview(_controller)),
+                  child: Center(
+                    child: RepaintBoundary(
+                      key: _cameraKey,
+                      child: CameraPreview(_controller),
+                    ),
+                  ),
                 ),
 
                 Expanded(

@@ -13,7 +13,7 @@ async def process_and_save_frame(image_bytes: bytes):
     global _last_zones
 
     timestamp = int(time.time())
-    file_path = f"captured_images/frame_{timestamp}.jpg"
+    file_path = f"captured_images/frame_{timestamp}.png"
 
     with open(file_path, "wb") as f:
         f.write(image_bytes)
@@ -40,14 +40,14 @@ async def process_and_save_frame(image_bytes: bytes):
         if is_inside >=0:
             current_zones.add(zone_name)
 
-        entered = current_zones - _last_zones
-        for zone in entered:
-            print(f"Event: PET ENTERED {zone}", flush=True)
-            await log_event("zone_enter", zone_name=zone)
+    entered = current_zones - _last_zones
+    for zone in entered:
+        print(f"Event: PET ENTERED {zone}", flush=True)
+        await log_event("zone_enter", zone_name=zone)
 
-        exited = _last_zones - current_zones
-        for zone in exited:
-            print(f"Event: PET EXITED {zone}", flush=True)
-            await log_event("zone_exit", zone_name=zone)
+    exited = _last_zones - current_zones
+    for zone in exited:
+        print(f"Event: PET EXITED {zone}", flush=True)
+        await log_event("zone_exit", zone_name=zone)
 
-        _last_zones = current_zones
+    _last_zones = current_zones
