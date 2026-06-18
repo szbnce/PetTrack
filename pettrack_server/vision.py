@@ -32,7 +32,7 @@ async def process_and_save_frame(image_bytes: bytes):
     current_zones = set()
 
     for zone_name, polygon_points in active_zones.items():
-        pts = np.array([[p.x, p.y] for p in polygon_points], np.int32)
+        pts = np.array([[p["x"], p["y"]] for p in polygon_points], np.int32)
         pts = pts.reshape((-1, 1, 2))
 
         is_inside = cv2.pointPolygonTest(pts, pet_center, measureDist=False)

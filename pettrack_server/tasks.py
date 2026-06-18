@@ -3,7 +3,7 @@ import time
 import asyncio
 
 async def cleanup_old_images():
-    folder_path = "captured_frames"
+    folder_path = "captured_images"
 
     while True:
         if os.path.exists(folder_path):

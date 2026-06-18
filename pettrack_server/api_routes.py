@@ -1,12 +1,19 @@
 import os
 import glob
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from fastapi.responses import FileResponse
 from typing import List, Dict
 from schemas import ZoneConfig, Point
 from database import save_zones, get_zones, get_events
 
-router = APIRouter()
+SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
+
+async def verify_token(token: str = Query(None), x_api_token: str = Header(None)):
+    req_token = token or x_api_token
+    if req_token != SECRET_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 monitor_state = {
     "online": False,
@@ -36,7 +43,8 @@ async def update_zones(zones: List[ZoneConfig]):
     global active_zones
     active_zones.clear()
     for z in zones:
-        active_zones[z.name] = z.polygon
+        active_zones[z.name] = [{"x": p.x, "y": p.y} for p in z.polygon]
+    await save_zones(zones)
     return {"message": "Zones updated successfully!"}
 
 @router.get("/api/frame/latest")

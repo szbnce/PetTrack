@@ -240,7 +240,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
       await _controller.initialize();
       await _controller.setFlashMode(FlashMode.off);
-      await _controller.setFocusMode(FocusMode.locked);
+      await _controller.setFocusMode(FocusMode.auto);
       if (!mounted) return;
       setState(() => _isInitialized = true);
     } catch (e) {
@@ -362,22 +362,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isSleeping) {
-      return GestureDetector(
-        onDoubleTap: () => setState(() => _isSleeping = false),
-        child: const Scaffold(
-          backgroundColor: Colors.black,
-          body: Center(
-            child: Text(
-              'Sleeping... Double tap to wake',
-              style: TextStyle(color: Colors.white24, fontSize: 12),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Scaffold(
+    final mainScreen = Scaffold(
       appBar: AppBar(
         title: const Text('🐾 Monitor'),
         backgroundColor: Colors.red[900],
@@ -513,6 +498,30 @@ class _MonitorScreenState extends State<MonitorScreen> {
               ],
             )
           : const Center(child: CircularProgressIndicator()),
+    );
+
+    if (!_isSleeping) {
+      return mainScreen;
+    }
+
+    return Stack(
+      children: [
+        mainScreen,
+        GestureDetector(
+          onDoubleTap: () => setState(() => _isSleeping = false),
+          child: Container(
+            color: Colors.black,
+            width: double.infinity,
+            height: double.infinity,
+            child: const Center(
+              child: DefaultTextStyle(
+                style: TextStyle(color: Colors.white24, fontSize: 12),
+                child: Text('Sleeping... Double tap to wake'),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

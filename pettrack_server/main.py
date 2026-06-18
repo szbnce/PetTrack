@@ -5,10 +5,10 @@ import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from manager import manager
-from api_routes import router as zones_router, monitor_state
+from api_routes import router as zones_router, monitor_state, active_zones
 from tasks import cleanup_old_images
 from vision import process_and_save_frame
-from database import init_db
+from database import init_db, get_zones
 
 app = FastAPI()
 
@@ -17,6 +17,12 @@ app.include_router(zones_router)
 @app.on_event("startup")
 async def startup_event():
     await init_db()
+    
+    # Load saved zones from database into memory
+    zones = await get_zones()
+    for z in zones:
+        active_zones[z["name"]] = z["polygon"]
+        
     asyncio.create_task(cleanup_old_images())
 
 SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
