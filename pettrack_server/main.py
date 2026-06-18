@@ -5,9 +5,10 @@ import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from manager import manager
-from api_routes import router as zones_router
+from api_routes import router as zones_router, monitor_state
 from tasks import cleanup_old_images
 from vision import process_and_save_frame
+from database import init_db
 
 app = FastAPI()
 
@@ -15,6 +16,7 @@ app.include_router(zones_router)
 
 @app.on_event("startup")
 async def startup_event():
+    await init_db()
     asyncio.create_task(cleanup_old_images())
 
 SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
@@ -26,35 +28,38 @@ def read_root():
 @app.websocket("/ws")
 async def tracker_websocket(websocket: WebSocket, token: str = None):
     if token != SECRET_TOKEN:
-        print(f"Connection rejected: Invalid token '{token}'")
+        print(f"Connection rejected: Invalid token '{token}'", flush=True)
         await websocket.close(code=1008)
         return
-    
+
     monitor_id = "flutter_client"
     await manager.connect(websocket)
+    monitor_state["online"] = True
+    monitor_state["frame_count"] = 0
     print(f"Monitor {monitor_id} connected!", flush=True)
-
-    frame_counter = 0
 
     try:
         while True:
             data = await websocket.receive_bytes()
-            frame_counter += 1
-            if frame_counter % 10 == 0:
-                print(f"Received camera frame from {monitor_id}: {len(data)} bytes", flush=True)
+            monitor_state["frame_count"] += 1
 
-            if frame_counter % 30 == 0:
+            if monitor_state["frame_count"] % 10 == 0:
+                print(f"Received frame #{monitor_state['frame_count']} from {monitor_id}: {len(data)} bytes", flush=True)
+
+            if monitor_state["frame_count"] % 30 == 0:
                 asyncio.create_task(process_and_save_frame(data))
-    
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+        monitor_state["online"] = False
         print(f"Monitor {monitor_id} disconnected normally.", flush=True)
     except Exception as e:
         manager.disconnect(websocket)
+        monitor_state["online"] = False
         print(f"Error: {e}", flush=True)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the PetTrack server")
+    parser = argparse.ArgumentParser(description="Run the PetTrack Server")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
     args = parser.parse_args()
 
