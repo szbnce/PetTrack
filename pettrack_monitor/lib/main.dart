@@ -7,6 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
+import 'package:battery_plus/battery_plus.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 late List<CameraDescription> _cameras;
 
@@ -221,7 +224,12 @@ class MonitorScreen extends StatefulWidget {
   final String serverIp;
   final String token;
   final String clientId;
-  const MonitorScreen({super.key, required this.serverIp, required this.token, required this.clientId});
+  const MonitorScreen({
+    super.key,
+    required this.serverIp,
+    required this.token,
+    required this.clientId,
+  });
 
   @override
   State<MonitorScreen> createState() => _MonitorScreenState();
@@ -239,6 +247,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
   bool _isCapturing = false;
   final GlobalKey _previewKey = GlobalKey();
   final GlobalKey _cameraKey = GlobalKey();
+  final Battery _battery = Battery();
+  Timer? _statusTimer;
 
   late String _currentIp;
   late String _currentToken;
@@ -326,6 +336,11 @@ class _MonitorScreenState extends State<MonitorScreen> {
     WakelockPlus.enable();
     debugPrint("Starting Stream");
 
+    _sendBatteryStatus();
+    _statusTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _sendBatteryStatus();
+    });
+
     _streamTimer = Timer.periodic(const Duration(milliseconds: 2000), (
       _,
     ) async {
@@ -340,6 +355,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
     _streamTimer?.cancel();
     _streamTimer = null;
+    _statusTimer?.cancel();
+    _statusTimer = null;
 
     setState(() {
       _isStreaming = false;
@@ -347,6 +364,27 @@ class _MonitorScreenState extends State<MonitorScreen> {
     });
     WakelockPlus.disable();
     debugPrint("Stopping Stream");
+  }
+
+  Future<void> _sendBatteryStatus() async {
+    if (!_isStreaming) return;
+    try {
+      final level = await _battery.batteryLevel;
+      final state = await _battery.batteryState;
+      final isCharging =
+          state == BatteryState.charging || state == BatteryState.full;
+
+      await http.post(
+        Uri.parse('http://$_currentIp/api/monitor/update'),
+        headers: {
+          'x-api-token': _currentToken,
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'battery_level': level, 'is_charging': isCharging}),
+      );
+    } catch (e) {
+      debugPrint("Failed to send battery Status: $e");
+    }
   }
 
   Future<void> _captureAndSendFrame() async {

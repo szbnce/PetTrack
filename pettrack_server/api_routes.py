@@ -3,7 +3,7 @@ import glob
 from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from fastapi.responses import FileResponse
 from typing import List, Dict
-from schemas import ZoneConfig, Point
+from schemas import ZoneConfig, Point, MonitorUpdate
 from database import save_zones, get_zones, get_events
 
 SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
@@ -24,10 +24,18 @@ active_zones: Dict[str, List[Point]] = {}
 @router.get("/api/status")
 async def get_status():
     return {
-        "monitor_online": monitor_state["online"],
-        "frame_count": monitor_state["frame_count"],
-        "monitor_id": monitor_state.get("id", "unnamed_monitor")
+        "monitor_online": monitor_state.get("online", False),
+        "frame_count": monitor_state.get("frame_count", 0),
+        "monitor_id": monitor_state.get("id", "unnamed_monitor"),
+        "battery_level": monitor_state.get("battery_level", 100),
+        "is_charging": monitor_state.get("is_charging", False),
     }
+
+@router.post("/api/monitor/update")
+async def update_monitor_status(update: MonitorUpdate):
+    monitor_state["battery_level"] = update.battery_level
+    monitor_state["is_charging"] = update.is_charging
+    return{"status:" "ok"}
 
 @router.get("/api/activity")
 async def get_activity(limit: int = 50):
