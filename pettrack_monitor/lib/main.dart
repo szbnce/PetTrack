@@ -25,6 +25,7 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final savedIp = prefs.getString('server_ip');
   final savedToken = prefs.getString('server_token');
+  final savedClientId = prefs.getString('client_id');
 
   final bool skipSetup = savedIp != null && savedIp.isNotEmpty;
 
@@ -33,6 +34,7 @@ Future<void> main() async {
       skipSetup: skipSetup,
       initialIp: savedIp,
       initialToken: savedToken,
+      initialClientId: savedClientId ?? 'unnamed_monitor',
     ),
   );
 }
@@ -41,12 +43,14 @@ class PetTrackApp extends StatelessWidget {
   final bool skipSetup;
   final String? initialIp;
   final String? initialToken;
+  final String initialClientId;
 
   const PetTrackApp({
     super.key,
     required this.skipSetup,
     this.initialIp,
     this.initialToken,
+    required this.initialClientId,
   });
 
   @override
@@ -59,7 +63,11 @@ class PetTrackApp extends StatelessWidget {
       ),
 
       home: skipSetup
-          ? MonitorScreen(serverIp: initialIp!, token: initialToken!)
+          ? MonitorScreen(
+              serverIp: initialIp!,
+              token: initialToken!,
+              clientId: initialClientId,
+            )
           : const SetupScreen(),
     );
   }
@@ -76,6 +84,7 @@ class SetupScreen extends StatefulWidget {
 class _SetupScreenState extends State<SetupScreen> {
   final TextEditingController _ipController = TextEditingController();
   final TextEditingController _tokenController = TextEditingController();
+  final TextEditingController _clientIdController = TextEditingController();
 
   @override
   void initState() {
@@ -89,6 +98,8 @@ class _SetupScreenState extends State<SetupScreen> {
       _ipController.text = prefs.getString('server_ip') ?? '127.0.0.1:8000';
       _tokenController.text =
           prefs.getString('server_token') ?? 'MYSUPERSECRETTOKEN';
+      _clientIdController.text =
+          prefs.getString('client_id') ?? 'unnamed_monitor';
     });
   }
 
@@ -96,6 +107,7 @@ class _SetupScreenState extends State<SetupScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('server_ip', _ipController.text);
     await prefs.setString('server_token', _tokenController.text);
+    await prefs.setString('client_id', _clientIdController.text);
 
     if (!mounted) return;
 
@@ -110,6 +122,7 @@ class _SetupScreenState extends State<SetupScreen> {
           builder: (context) => MonitorScreen(
             serverIp: _ipController.text,
             token: _tokenController.text,
+            clientId: _clientIdController.text,
           ),
         ),
       );
@@ -164,6 +177,15 @@ class _SetupScreenState extends State<SetupScreen> {
                 ),
                 const SizedBox(height: 15),
                 TextField(
+                  controller: _clientIdController,
+                  decoration: const InputDecoration(
+                    labelText: 'Device Name (Monitor ID)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.badge),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextField(
                   controller: _tokenController,
                   decoration: const InputDecoration(
                     labelText: 'Security Token',
@@ -198,7 +220,8 @@ class _SetupScreenState extends State<SetupScreen> {
 class MonitorScreen extends StatefulWidget {
   final String serverIp;
   final String token;
-  const MonitorScreen({super.key, required this.serverIp, required this.token});
+  final String clientId;
+  const MonitorScreen({super.key, required this.serverIp, required this.token, required this.clientId});
 
   @override
   State<MonitorScreen> createState() => _MonitorScreenState();
@@ -219,12 +242,14 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
   late String _currentIp;
   late String _currentToken;
+  late String _currentClientId;
 
   @override
   void initState() {
     super.initState();
     _currentIp = widget.serverIp;
     _currentToken = widget.token;
+    _currentClientId = widget.clientId;
     _initCamera();
     _connectWebSocket();
   }
@@ -255,7 +280,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
     try {
       debugPrint("Connecting to ws://$_currentIp/ws");
       _socket = await WebSocket.connect(
-        'ws://$_currentIp/ws?token=$_currentToken',
+        'ws://$_currentIp/ws?token=$_currentToken&client_id=$_currentClientId',
       ).timeout(const Duration(seconds: 5));
 
       debugPrint("Connected successfully!");
@@ -389,6 +414,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
                     _currentIp = prefs.getString('server_ip') ?? _currentIp;
                     _currentToken =
                         prefs.getString('server_token') ?? _currentToken;
+                    _currentClientId =
+                        prefs.getString('client_id') ?? _currentClientId;
                   });
                   _socket?.close();
                   _connectWebSocket();

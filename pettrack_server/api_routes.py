@@ -26,6 +26,7 @@ async def get_status():
     return {
         "monitor_online": monitor_state["online"],
         "frame_count": monitor_state["frame_count"],
+        "monitor_id": monitor_state.get("id", "unnamed_monitor")
     }
 
 @router.get("/api/activity")

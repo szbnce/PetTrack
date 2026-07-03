@@ -98,7 +98,7 @@ def test_rest_endpoints():
 async def test_websocket():
     panel_title = "[bold cyan]Websocket test,,,[/bold cyan]"
 
-    uri = f"{WS_URL}?token={TOKEN}"
+    uri = f"{WS_URL}?token={TOKEN}&client_id=test_script"
     try:
         async with websockets.connect(uri) as ws:
             success_msg = "[bold green]Successful connection to WS[/bold green]\n"

@@ -32,16 +32,17 @@ def read_root():
     return {"message": "PetTrack server is running"}
 
 @app.websocket("/ws")
-async def tracker_websocket(websocket: WebSocket, token: str = None):
+async def tracker_websocket(websocket: WebSocket, token: str = None, client_id: str = "unknown"):
     if token != SECRET_TOKEN:
-        print(f"Connection rejected: Invalid token '{token}'", flush=True)
+        print(f"Connection rejected: Invalid Token '{token}'", flush=True)
         await websocket.close(code=1008)
         return
 
-    monitor_id = "flutter_client"
+    monitor_id = client_id
     await manager.connect(websocket)
     monitor_state["online"] = True
     monitor_state["frame_count"] = 0
+    monitor_state["id"] = monitor_id
     print(f"Monitor {monitor_id} connected!", flush=True)
 
     try:
