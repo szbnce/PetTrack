@@ -230,4 +230,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get playZone => 'Játszótér';
+
+  @override
+  String get appearance => 'Megjelenés (Téma)';
+
+  @override
+  String get themeSystem => 'Rendszer alapértelmezett';
+
+  @override
+  String get themeLight => 'Világos';
+
+  @override
+  String get themeDark => 'Sötét';
 }

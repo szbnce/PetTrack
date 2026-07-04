@@ -230,4 +230,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playZone => 'Play Area';
+
+  @override
+  String get appearance => 'Appearance (Theme)';
+
+  @override
+  String get themeSystem => 'System default';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
 }

@@ -65,5 +65,9 @@
   "bedZone": "Fekvőhely",
   "waterZone": "Itató",
   "foodZone": "Etető",
-  "playZone": "Játszótér"
+  "playZone": "Játszótér",
+  "appearance": "Megjelenés (Téma)",
+  "themeSystem": "Rendszer alapértelmezett",
+  "themeLight": "Világos",
+  "themeDark": "Sötét"
 }

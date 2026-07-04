@@ -13,16 +13,48 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final savedLocale = prefs.getString('language_code') ?? 'hu';
-  runApp(PetTrackClientApp(initialLocale: savedLocale));
+  final themeModeString = prefs.getString('theme_mode') ?? 'system';
+
+  ThemeMode initialThemeMode;
+  switch (themeModeString) {
+    case 'light':
+      initialThemeMode = ThemeMode.light;
+      break;
+    case 'dark':
+      initialThemeMode = ThemeMode.dark;
+      break;
+    case 'system':
+    default:
+      initialThemeMode = ThemeMode.system;
+  }
+
+  runApp(
+    PetTrackClientApp(
+      initialLocale: savedLocale,
+      initialThemeMode: initialThemeMode,
+    ),
+  );
 }
 
 class PetTrackClientApp extends StatefulWidget {
   final String? initialLocale;
-  const PetTrackClientApp({super.key, this.initialLocale});
+  final ThemeMode initialThemeMode;
+  const PetTrackClientApp({
+    super.key,
+    this.initialLocale,
+    this.initialThemeMode = ThemeMode.system,
+  });
 
   static void setLocale(BuildContext context, Locale newLocale) {
-    _PetTrackClientAppState? state = context.findAncestorStateOfType<_PetTrackClientAppState>();
+    _PetTrackClientAppState? state = context
+        .findAncestorStateOfType<_PetTrackClientAppState>();
     state?.setLocale(newLocale);
+  }
+
+  static void setThemeMode(BuildContext context, ThemeMode mode) {
+    _PetTrackClientAppState? state = context
+        .findAncestorStateOfType<_PetTrackClientAppState>();
+    state?.setThemeMode(mode);
   }
 
   @override
@@ -31,10 +63,12 @@ class PetTrackClientApp extends StatefulWidget {
 
 class _PetTrackClientAppState extends State<PetTrackClientApp> {
   Locale? _locale;
+  late ThemeMode _themeMode;
 
   @override
   void initState() {
     super.initState();
+    _themeMode = widget.initialThemeMode;
     if (widget.initialLocale != null) {
       _locale = Locale(widget.initialLocale!);
     }
@@ -46,12 +80,20 @@ class _PetTrackClientAppState extends State<PetTrackClientApp> {
     });
   }
 
+  void setThemeMode(ThemeMode mode) {
+    setState(() {
+      _themeMode = mode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PetTrack Client',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: _themeMode,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -62,7 +104,7 @@ class _PetTrackClientAppState extends State<PetTrackClientApp> {
         Locale('en'), // English
         Locale('hu'), // Hungarian
       ],
-      locale: _locale, 
+      locale: _locale,
       home: const BootScreen(),
     );
   }
@@ -98,10 +140,15 @@ class _BootScreenState extends State<BootScreen> {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                MainNavigationScreen(serverIp: ip, token: token, petName: petName),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+                MainNavigationScreen(
+                  serverIp: ip,
+                  token: token,
+                  petName: petName,
+                ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
           ),
         );
       }
@@ -111,9 +158,10 @@ class _BootScreenState extends State<BootScreen> {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 const SetupScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
           ),
         );
       }
@@ -121,9 +169,13 @@ class _BootScreenState extends State<BootScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-    backgroundColor: AppColors.surface,
-    body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Theme.of(context).colorScheme.surface,
+    body: Center(
+      child: CircularProgressIndicator(
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    ),
   );
 }
 

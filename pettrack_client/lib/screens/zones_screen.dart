@@ -150,12 +150,12 @@ class _ZonesScreenState extends State<ZonesScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () {
             // Usually this would pop, but we are in a bottom nav.
           },
@@ -252,7 +252,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                           decoration: InputDecoration(
                             hintText: 'Zóna neve...',
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: Theme.of(context).cardColor,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide.none,
@@ -264,7 +264,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                           value: _selectedZoneType,
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: Theme.of(context).cardColor,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide.none,
@@ -358,8 +358,9 @@ class _ZonesScreenState extends State<ZonesScreen> {
                                 ),
                                 child: Text(
                                   l10n.cancel,
-                                  style: const TextStyle(
-                                    color: AppColors.onSurface,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -467,7 +468,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             shape: BoxShape.circle,
                             border: Border.all(color: color.withOpacity(0.3)),
                           ),
@@ -475,9 +476,9 @@ class _ZonesScreenState extends State<ZonesScreen> {
                         ),
                         title: Text(
                           zone['name'],
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppColors.onSurface,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         subtitle: Text(
@@ -512,7 +513,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -553,7 +554,7 @@ class PolygonPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final paintPoint = Paint()
-      ..color = Colors.white
+      ..color = Colors.white // Paint color for polygon nodes (keep white)
       ..style = PaintingStyle.fill;
 
     if (points.isEmpty) return;
@@ -624,7 +625,7 @@ class SavedZonesPainter extends CustomPainter {
         final textSpan = TextSpan(
           text: zone['name'],
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.white, // Stroke color for nodes
             fontSize: 12,
             fontWeight: FontWeight.bold,
           ),

@@ -47,6 +47,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final l10n = AppLocalizations.of(context)!;
     
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -82,7 +83,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             selectedItemColor: AppColors.primary,
             unselectedItemColor: AppColors.tertiary,
             onTap: _onItemTapped,
-            backgroundColor: AppColors.onPrimary,
+            backgroundColor: Theme.of(context).cardColor,
             type: BottomNavigationBarType.fixed,
             elevation: 0,
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),

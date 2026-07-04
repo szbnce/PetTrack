@@ -135,5 +135,9 @@
   "bedZone": "Bed / Resting Area",
   "waterZone": "Water Bowl",
   "foodZone": "Food Bowl",
-  "playZone": "Play Area"
+  "playZone": "Play Area",
+  "appearance": "Appearance (Theme)",
+  "themeSystem": "System default",
+  "themeLight": "Light",
+  "themeDark": "Dark"
 }

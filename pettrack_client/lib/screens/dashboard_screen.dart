@@ -258,7 +258,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -317,7 +317,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ? MemoryImage(_profilePicBytes!)
                             : null,
                         child: _profilePicBytes == null
-                            ? Icon(_getPetIcon(_petType), color: Colors.white)
+                            ? Icon(_getPetIcon(_petType), color: Theme.of(context).colorScheme.onPrimary)
                             : null,
                       ),
                       const SizedBox(width: 8),
@@ -579,8 +579,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -603,7 +603,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -647,10 +647,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.onSurface,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 if (unit.isNotEmpty)
@@ -713,7 +713,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -725,9 +725,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppColors.onSurface,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                           ),
                         ),

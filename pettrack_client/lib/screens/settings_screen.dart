@@ -24,6 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _profilePicBase64;
   String _languageCode = 'hu';
   String _petType = 'rabbit';
+  String _themeModeString = 'system';
   bool _alertsZoneEnabled = true;
   bool _alertsBatteryEnabled = true;
   double _batteryThreshold = 20.0;
@@ -79,6 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _profilePicBase64 = prefs.getString('profile_pic');
       _languageCode = prefs.getString('language_code') ?? 'hu';
       _petType = prefs.getString('pet_type') ?? 'rabbit';
+      _themeModeString = prefs.getString('theme_mode') ?? 'system';
       _alertsZoneEnabled = prefs.getBool('alerts_zone_enabled') ?? true;
       _alertsBatteryEnabled = prefs.getBool('alerts_battery_enabled') ?? true;
       _batteryThreshold = prefs.getDouble('alerts_battery_threshold') ?? 20.0;
@@ -104,6 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setString('pet_name', _petNameController.text.trim());
     await prefs.setString('language_code', _languageCode);
     await prefs.setString('pet_type', _petType);
+    await prefs.setString('theme_mode', _themeModeString);
     await prefs.setBool('alerts_zone_enabled', _alertsZoneEnabled);
     await prefs.setBool('alerts_battery_enabled', _alertsBatteryEnabled);
     await prefs.setDouble('alerts_battery_threshold', _batteryThreshold);
@@ -115,6 +118,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (mounted) {
       PetTrackClientApp.setLocale(context, Locale(_languageCode));
+
+      ThemeMode newMode;
+      switch (_themeModeString) {
+        case 'light':
+          newMode = ThemeMode.light;
+          break;
+        case 'dark':
+          newMode = ThemeMode.dark;
+          break;
+        default:
+          newMode = ThemeMode.system;
+      }
+      PetTrackClientApp.setThemeMode(context, newMode);
 
       if (widget.isSetup) {
         Navigator.of(context).pushReplacement(
@@ -153,6 +169,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -183,7 +200,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.surface,
+                          width: 4,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.outline.withOpacity(0.15),
@@ -237,7 +257,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Űrlap
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -270,7 +290,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -309,6 +329,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 20),
 
                     Text(
+                      l10n.appearance,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _themeModeString,
+                          isExpanded: true,
+                          items: [
+                            DropdownMenuItem(
+                              value: 'system',
+                              child: Text(l10n.themeSystem),
+                            ),
+                            DropdownMenuItem(
+                              value: 'light',
+                              child: Text(l10n.themeLight),
+                            ),
+                            DropdownMenuItem(
+                              value: 'dark',
+                              child: Text(l10n.themeDark),
+                            ),
+                          ],
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                _themeModeString = newValue;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
                       l10n.secretToken,
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
@@ -341,7 +401,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
