@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:math';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +39,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _alertsBatteryEnabled = true;
   double _batteryThreshold = 20.0;
   bool _hasAlertedBattery = false;
+  bool _hasCameraError = false;
+  DateTime? _frameTimestamp;
 
   IconData _getPetIcon(String type) {
     switch (type) {
@@ -115,9 +118,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200 && mounted) {
-        setState(() => _latestFrame = response.bodyBytes);
+        if (response.headers['content-type']?.contains('application/json') ?? false) {
+          setState(() {
+            _latestFrame = null;
+            _hasCameraError = true;
+          });
+        } else {
+          DateTime? lastModified;
+          final lmHeader = response.headers['last-modified'];
+          if (lmHeader != null) {
+            try {
+              lastModified = HttpDate.parse(lmHeader);
+            } catch (_) {}
+          }
+          
+          setState(() {
+            _latestFrame = response.bodyBytes;
+            _hasCameraError = false;
+            _frameTimestamp = lastModified;
+          });
+        }
+      } else if (mounted) {
+        setState(() => _hasCameraError = true);
       }
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) setState(() => _hasCameraError = true);
+    }
   }
 
   Future<void> _fetchActivity() async {
@@ -205,6 +231,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  ({String text, Color textColor, Color bgColor}) _getBadgeInfo(AppLocalizations l10n) {
+    if (_hasCameraError || _latestFrame == null) {
+      return (text: "OFFLINE!", textColor: Colors.red, bgColor: const Color(0xFFFFE5E5));
+    }
+    
+    if (_frameTimestamp != null) {
+      final diff = DateTime.now().toUtc().difference(_frameTimestamp!);
+      final sec = diff.inSeconds;
+      if (sec <= 10) {
+        return (text: "Live", textColor: Colors.green[800]!, bgColor: Colors.green[100]!);
+      } else if (sec <= 30) {
+        return (text: l10n.secondsAgo(sec), textColor: Colors.lightGreen[800]!, bgColor: Colors.lightGreen[100]!);
+      } else {
+        return (text: l10n.secondsAgo(sec), textColor: Colors.orange[800]!, bgColor: Colors.orange[100]!);
+      }
+    }
+    
+    return (text: "Live", textColor: Colors.green[800]!, bgColor: Colors.green[100]!);
   }
 
   @override
@@ -320,36 +366,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   l10n.liveVideo,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFE5E5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
+                Builder(
+                  builder: (context) {
+                    final badge = _getBadgeInfo(l10n);
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
                       ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        "Live",
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
+                      decoration: BoxDecoration(
+                        color: badge.bgColor,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: badge.textColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            badge.text,
+                            style: TextStyle(
+                              color: badge.textColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                 ),
               ],
             ),

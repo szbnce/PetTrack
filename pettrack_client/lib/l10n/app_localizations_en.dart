@@ -210,4 +210,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cameraOffline => 'Camera Offline';
+
+  @override
+  String secondsAgo(int seconds) {
+    return '$seconds seconds ago';
+  }
 }

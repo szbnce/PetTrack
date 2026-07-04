@@ -463,6 +463,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Camera Offline'**
   String get cameraOffline;
+
+  /// No description provided for @secondsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} seconds ago'**
+  String secondsAgo(int seconds);
 }
 
 class _AppLocalizationsDelegate

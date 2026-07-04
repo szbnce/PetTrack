@@ -210,4 +210,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get cameraOffline => 'Nincs kamera élőkép';
+
+  @override
+  String secondsAgo(int seconds) {
+    return '$seconds másodperce';
+  }
 }
