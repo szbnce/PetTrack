@@ -1,10 +1,12 @@
 import os
 import glob
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Response
 from fastapi.responses import FileResponse
 from typing import List, Dict
 from schemas import ZoneConfig, Point, MonitorUpdate
 from database import save_zones, get_zones, get_events
+import time
+from email.utils import formatdate
 
 SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
 
@@ -20,6 +22,15 @@ monitor_state = {
     "frame_count": 0,
 }
 active_zones: Dict[str, List[Point]] = {}
+
+latest_frame_info = {
+    "data": None,
+    "timestamp": 0.0,
+}
+
+def update_latest_frame(data: bytes):
+    latest_frame_info["data"] = data
+    latest_frame_info["timestamp"] = time.time()
 
 @router.get("/api/status")
 async def get_status():
@@ -58,6 +69,12 @@ async def update_zones(zones: List[ZoneConfig]):
 
 @router.get("/api/frame/latest")
 async def get_latest_frame():
+    if latest_frame_info["data"]:
+        headers = {
+            "Last-Modified": formatdate(latest_frame_info["timestamp"], usegmt=True)
+        }
+        return Response(content=latest_frame_info["data"], media_type="image/png", headers=headers)
+    
     folder = "captured_images"
     if not os.path.exists(folder):
         return {"error": "No images found"}

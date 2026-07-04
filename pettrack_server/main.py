@@ -5,7 +5,7 @@ import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from manager import manager
-from api_routes import router as zones_router, monitor_state, active_zones
+from api_routes import router as zones_router, monitor_state, active_zones, update_latest_frame
 from tasks import cleanup_old_images
 from vision import process_and_save_frame
 from database import init_db, get_zones
@@ -49,7 +49,8 @@ async def tracker_websocket(websocket: WebSocket, token: str = None, client_id: 
         while True:
             data = await websocket.receive_bytes()
             monitor_state["frame_count"] += 1
-
+            update_latest_frame(data)
+            
             if monitor_state["frame_count"] % 10 == 0:
                 print(f"Received frame #{monitor_state['frame_count']} from {monitor_id}: {len(data)} bytes", flush=True)
 
