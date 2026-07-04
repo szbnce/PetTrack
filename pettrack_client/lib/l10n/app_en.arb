@@ -123,5 +123,6 @@
     "placeholders": {
       "level": { "type": "int" }
     }
-  }
+  },
+  "cameraOffline": "Camera Offline"
 }

@@ -207,4 +207,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String batteryLowBody(int level) {
     return 'A monitor $level% alá merült.';
   }
+
+  @override
+  String get cameraOffline => 'Nincs kamera élőkép';
 }

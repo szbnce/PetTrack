@@ -380,6 +380,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         _latestFrame!,
                         fit: BoxFit.cover,
                         gaplessPlayback: true,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.videocam_off,
+                                  size: 64,
+                                  color: Colors.white.withOpacity(0.5),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  l10n.cameraOffline,
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.5),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       )
                     else
                       const Center(

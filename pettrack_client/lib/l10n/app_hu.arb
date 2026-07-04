@@ -58,5 +58,6 @@
   "testNotifTitle": "Teszt értesítés",
   "testNotifBody": "Sikeresen beállítottad az értesítéseket!",
   "batteryLowTitle": "Alacsony akkumlátor!",
-  "batteryLowBody": "A monitor {level}% alá merült."
+  "batteryLowBody": "A monitor {level}% alá merült.",
+  "cameraOffline": "Nincs kamera élőkép"
 }

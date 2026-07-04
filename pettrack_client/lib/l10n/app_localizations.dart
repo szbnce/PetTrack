@@ -457,6 +457,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The pet tracker battery is below {level}%.'**
   String batteryLowBody(int level);
+
+  /// No description provided for @cameraOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera Offline'**
+  String get cameraOffline;
 }
 
 class _AppLocalizationsDelegate

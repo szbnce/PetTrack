@@ -207,4 +207,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String batteryLowBody(int level) {
     return 'The pet tracker battery is below $level%.';
   }
+
+  @override
+  String get cameraOffline => 'Camera Offline';
 }
