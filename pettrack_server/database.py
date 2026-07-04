@@ -20,9 +20,14 @@ async def init_db():
             CREATE TABLE IF NOT EXISTS zones (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
-                polygon TEXT NOT NULL
+                polygon TEXT NOT NULL,
+                type TEXT DEFAULT 'safe'
                 )
         """)
+        try:
+            await db.execute("ALTER TABLE zones ADD COLUMN type TEXT DEFAULT 'safe'")
+        except Exception:
+            pass
         await db.commit()
         print("Database initialized!", flush=True)
 
@@ -50,8 +55,8 @@ async def save_zones(zones_data):
         for zone in zones_data:
             polygon_json = json.dumps([{"x": p.x, "y": p.y} for p in zone.polygon])
             await db.execute(
-                "INSERT INTO zones (name, polygon) VALUES (?, ?)",
-                (zone.name, polygon_json)
+                "INSERT INTO zones (name, polygon, type) VALUES (?, ?, ?)",
+                (zone.name, polygon_json, zone.type)
             )
         await db.commit()
 
@@ -60,4 +65,4 @@ async def get_zones():
         db.row_factory = aiosqlite.Row
         cursor = await db.execute("SELECT * FROM zones")
         rows = await cursor.fetchall()
-        return [{"name": row["name"],"polygon": json.loads(row["polygon"])} for row in rows]
+        return [{"name": row["name"],"polygon": json.loads(row["polygon"]), "type": dict(row).get("type", "safe")} for row in rows]

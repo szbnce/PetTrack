@@ -215,4 +215,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String secondsAgo(int seconds) {
     return '$seconds seconds ago';
   }
+
+  @override
+  String get toiletZone => 'Litter Box / Toilet';
+
+  @override
+  String get bedZone => 'Bed / Resting Area';
+
+  @override
+  String get waterZone => 'Water Bowl';
+
+  @override
+  String get foodZone => 'Food Bowl';
+
+  @override
+  String get playZone => 'Play Area';
 }

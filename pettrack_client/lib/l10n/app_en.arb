@@ -130,5 +130,10 @@
     "placeholders": {
       "seconds": { "type": "int" }
     }
-  }
+  },
+  "toiletZone": "Litter Box / Toilet",
+  "bedZone": "Bed / Resting Area",
+  "waterZone": "Water Bowl",
+  "foodZone": "Food Bowl",
+  "playZone": "Play Area"
 }

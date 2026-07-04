@@ -22,6 +22,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
   List<Offset> _currentPolygon = [];
   bool _isDrawing = false;
   final _zoneNameController = TextEditingController();
+  String _selectedZoneType = 'toilet';
   List<dynamic> _existingZones = [];
 
   @override
@@ -52,15 +53,14 @@ class _ZonesScreenState extends State<ZonesScreen> {
 
         setState(() {
           // Add a dummy 'type' for UI colors since the API only returns name and polygon
-          _existingZones = fetchedZones
-              .map(
-                (z) => {
-                  "name": z['name'],
-                  "polygon": z['polygon'],
-                  "type": "safe", // Default type
-                },
-              )
-              .toList();
+          _existingZones = fetchedZones.map((z) {
+            print("DEBUG ZONE FETCHED: ${z['name']} -> ${z['type']}");
+            return {
+              "name": z['name'],
+              "polygon": z['polygon'],
+              "type": z['type'] ?? "safe",
+            };
+          }).toList();
         });
       }
     } catch (_) {}
@@ -87,10 +87,17 @@ class _ZonesScreenState extends State<ZonesScreen> {
     final zoneConfig = {
       "name": _zoneNameController.text.trim(),
       "polygon": _currentPolygon.map((p) => {"x": p.dx, "y": p.dy}).toList(),
+      "type": _selectedZoneType,
     };
 
     final allZonesToSave = _existingZones
-        .map((z) => {"name": z['name'], "polygon": z['polygon']})
+        .map(
+          (z) => {
+            "name": z['name'],
+            "polygon": z['polygon'],
+            "type": z['type'] ?? 'safe',
+          },
+        )
         .toList();
     allZonesToSave.add(zoneConfig);
 
@@ -112,7 +119,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
             "polygon": _currentPolygon
                 .map((p) => {"x": p.dx, "y": p.dy})
                 .toList(),
-            "type": "safe",
+            "type": _selectedZoneType,
           });
           _isDrawing = false;
           _currentPolygon.clear();
@@ -253,6 +260,83 @@ class _ZonesScreenState extends State<ZonesScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: _selectedZoneType,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'toilet',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.wc, color: Colors.blueGrey),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.toiletZone),
+                                ],
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'bed',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.bed, color: Colors.indigo),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.bedZone),
+                                ],
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'food',
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.restaurant,
+                                    color: Colors.orange,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.foodZone),
+                                ],
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'water',
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.water_drop,
+                                    color: Colors.blue,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.waterZone),
+                                ],
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'play',
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.sports_tennis,
+                                    color: Colors.green,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(l10n.playZone),
+                                ],
+                              ),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedZoneType = val);
+                            }
+                          },
+                        ),
                         Row(
                           children: [
                             Expanded(
@@ -333,25 +417,41 @@ class _ZonesScreenState extends State<ZonesScreen> {
                     String subtitle;
 
                     switch (zone['type']) {
-                      case 'safe':
-                        icon = Icons.chair;
+                      case 'toilet':
+                        icon = Icons.wc;
+                        color = Colors.blueGrey;
+                        bgColor = Colors.blueGrey.withOpacity(0.1);
+                        subtitle = l10n.toiletZone;
+                        break;
+                      case 'bed':
+                        icon = Icons.bed;
+                        color = Colors.indigo;
+                        bgColor = Colors.indigo.withOpacity(0.1);
+                        subtitle = l10n.bedZone;
+                        break;
+                      case 'water':
+                        icon = Icons.water_drop;
+                        color = Colors.blue;
+                        bgColor = Colors.blue.withOpacity(0.1);
+                        subtitle = l10n.waterZone;
+                        break;
+                      case 'food':
+                        icon = Icons.restaurant;
+                        color = Colors.orange;
+                        bgColor = Colors.orange.withOpacity(0.1);
+                        subtitle = l10n.foodZone;
+                        break;
+                      case 'play':
+                        icon = Icons.sports_tennis;
+                        color = Colors.green;
+                        bgColor = Colors.green.withOpacity(0.1);
+                        subtitle = l10n.playZone;
+                        break;
+                      default:
+                        icon = Icons.place;
                         color = AppColors.primary;
                         bgColor = AppColors.primary.withOpacity(0.1);
                         subtitle = l10n.safeZone;
-                        break;
-                      case 'warning':
-                        icon = Icons.restaurant;
-                        color = AppColors.secondary;
-                        bgColor = AppColors.warning.withOpacity(0.2);
-                        subtitle = l10n.warningZone;
-                        break;
-                      case 'alert':
-                      default:
-                        icon = Icons.meeting_room;
-                        color = Colors.red;
-                        bgColor = Colors.red.withOpacity(0.1);
-                        subtitle = l10n.alertZone;
-                        break;
                     }
 
                     return Container(

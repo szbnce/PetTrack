@@ -60,5 +60,10 @@
   "batteryLowTitle": "Alacsony akkumlátor!",
   "batteryLowBody": "A monitor {level}% alá merült.",
   "cameraOffline": "Nincs kamera élőkép",
-  "secondsAgo": "{seconds} másodperce"
+  "secondsAgo": "{seconds} másodperce",
+  "toiletZone": "Alomtálca / WC",
+  "bedZone": "Fekvőhely",
+  "waterZone": "Itató",
+  "foodZone": "Etető",
+  "playZone": "Játszótér"
 }

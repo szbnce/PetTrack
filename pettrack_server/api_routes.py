@@ -60,6 +60,7 @@ async def get_zones_list():
 
 @router.post("/api/zones")
 async def update_zones(zones: List[ZoneConfig]):
+    print(f"DEBUG INCOMING ZONES: {zones}", flush=True)
     global active_zones
     active_zones.clear()
     for z in zones:

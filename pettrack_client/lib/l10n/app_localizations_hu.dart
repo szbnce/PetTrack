@@ -215,4 +215,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String secondsAgo(int seconds) {
     return '$seconds másodperce';
   }
+
+  @override
+  String get toiletZone => 'Alomtálca / WC';
+
+  @override
+  String get bedZone => 'Fekvőhely';
+
+  @override
+  String get waterZone => 'Itató';
+
+  @override
+  String get foodZone => 'Etető';
+
+  @override
+  String get playZone => 'Játszótér';
 }

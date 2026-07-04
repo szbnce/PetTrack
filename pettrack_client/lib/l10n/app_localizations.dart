@@ -469,6 +469,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{seconds} seconds ago'**
   String secondsAgo(int seconds);
+
+  /// No description provided for @toiletZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Litter Box / Toilet'**
+  String get toiletZone;
+
+  /// No description provided for @bedZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Bed / Resting Area'**
+  String get bedZone;
+
+  /// No description provided for @waterZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Water Bowl'**
+  String get waterZone;
+
+  /// No description provided for @foodZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Bowl'**
+  String get foodZone;
+
+  /// No description provided for @playZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Play Area'**
+  String get playZone;
 }
 
 class _AppLocalizationsDelegate

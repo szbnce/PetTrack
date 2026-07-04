@@ -8,6 +8,7 @@ class Point(BaseModel):
 class ZoneConfig(BaseModel):
     name: str
     polygon: List[Point]
+    type: str = "safe"
 
 class MonitorUpdate(BaseModel):
     battery_level: int
