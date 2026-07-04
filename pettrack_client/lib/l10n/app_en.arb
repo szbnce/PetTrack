@@ -1,0 +1,127 @@
+{
+  "appName": "PetTrack",
+  "settingsTitle": "System Settings",
+  "uploadProfilePicture": "Upload profile picture",
+  "serverIp": "Server IP",
+  "serverIpHint": "e.g. 192.168.1.100",
+  "secretToken": "Secret Token",
+  "petName": "Pet name",
+  "petNameHint": "Enter the name",
+  "save": "Save",
+  "navDashboard": "Dashboard",
+  "navZones": "Zones",
+  "navSettings": "Settings",
+  "greeting": "Hi Boss!",
+  "greetingSubtitle": "Here is {petName}'s day today.",
+  "@greetingSubtitle": {
+    "placeholders": {
+      "petName": {
+        "type": "String"
+      }
+    }
+  },
+  "liveVideo": "Live Video",
+  "lastMovement": "Last movement: {time}",
+  "@lastMovement": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "distance": "Distance",
+  "feedings": "Feedings",
+  "activities": "Activities",
+  "noRecentEvents": "No recent events",
+  "zoneEntered": "{petName} entered {zone}",
+  "@zoneEntered": {
+    "placeholders": {
+      "petName": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "zoneLeft": "{petName} left {zone}",
+  "@zoneLeft": {
+    "placeholders": {
+      "petName": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraDetectedMovement": "Camera detected movement.",
+  "editZones": "Edit Zones",
+  "addNewZone": "Add new zone",
+  "cancel": "Cancel",
+  "existingZones": "Existing zones",
+  "safeZone": "Safe zone",
+  "warningZone": "Warning zone",
+  "alertZone": "Alert zone",
+  "today": "Today",
+  "language": "Language",
+  "active": "Active",
+  "mainMonitor": "Main Monitor",
+  "favoriteZone": "Favorite zone",
+  "lastSeen": "Last seen",
+  "justNow": "Just now",
+  "minsAgo": "{mins} mins ago",
+  "@minsAgo": {
+    "placeholders": {
+      "mins": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{hours} hours ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{days} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "unknown": "Unknown",
+  "leftTheZone": "Left the zone.",
+  "greetingsList": "Hi Boss!|Welcome back!|Have a nice day!|Hey!|How are you?|Hello!|What's up?|Good to see you again!|Ready?|Let's see what they are doing!",
+  "subGreetingsList": "Everything is fine here.|Seems to be sleeping.|Full of energy!|Watching the area.|Waiting for dinner.|Sniffing something.|Resting peacefully.|At the favorite spot.|Wants to play.|Everything is quiet.",
+  "petTypeTitle": "Pet Type",
+  "petTypeDog": "Dog",
+  "petTypeCat": "Cat",
+  "petTypeRabbit": "Rabbit",
+  "petTypeGuineaPig": "Guinea Pig",
+  "petTypeBird": "Bird",
+  "petTypeOther": "Other",
+  "alertsTitle": "Notifications",
+  "alertsZone": "Zone alerts (Enter/Exit)",
+  "alertsBattery": "Low battery alert",
+  "batteryThreshold": "Battery threshold: {level}%",
+  "@batteryThreshold": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "testNotification": "Test Notification",
+  "testNotifTitle": "Test Notification",
+  "testNotifBody": "You have successfully set up notifications!",
+  "batteryLowTitle": "Battery Low!",
+  "batteryLowBody": "The pet tracker battery is below {level}%.",
+  "@batteryLowBody": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  }
+}

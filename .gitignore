@@ -23,7 +23,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+pettrack_server/lib/
 lib64/
 parts/
 sdist/
