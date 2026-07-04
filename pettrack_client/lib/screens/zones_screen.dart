@@ -10,11 +10,7 @@ class ZonesScreen extends StatefulWidget {
   final String serverIp;
   final String token;
 
-  const ZonesScreen({
-    super.key,
-    required this.serverIp,
-    required this.token,
-  });
+  const ZonesScreen({super.key, required this.serverIp, required this.token});
 
   @override
   State<ZonesScreen> createState() => _ZonesScreenState();
@@ -53,14 +49,18 @@ class _ZonesScreenState extends State<ZonesScreen> {
       if (response.statusCode == 200 && mounted) {
         final data = jsonDecode(response.body);
         final fetchedZones = data['zones'] as List<dynamic>;
-        
+
         setState(() {
           // Add a dummy 'type' for UI colors since the API only returns name and polygon
-          _existingZones = fetchedZones.map((z) => {
-            "name": z['name'],
-            "polygon": z['polygon'],
-            "type": "safe" // Default type
-          }).toList();
+          _existingZones = fetchedZones
+              .map(
+                (z) => {
+                  "name": z['name'],
+                  "polygon": z['polygon'],
+                  "type": "safe", // Default type
+                },
+              )
+              .toList();
         });
       }
     } catch (_) {}
@@ -89,10 +89,9 @@ class _ZonesScreenState extends State<ZonesScreen> {
       "polygon": _currentPolygon.map((p) => {"x": p.dx, "y": p.dy}).toList(),
     };
 
-    final allZonesToSave = _existingZones.map((z) => {
-      "name": z['name'],
-      "polygon": z['polygon']
-    }).toList();
+    final allZonesToSave = _existingZones
+        .map((z) => {"name": z['name'], "polygon": z['polygon']})
+        .toList();
     allZonesToSave.add(zoneConfig);
 
     try {
@@ -110,20 +109,24 @@ class _ZonesScreenState extends State<ZonesScreen> {
           _existingZones.add({
             "id": DateTime.now().millisecondsSinceEpoch.toString(),
             "name": _zoneNameController.text.trim(),
-            "polygon": _currentPolygon.map((p) => {"x": p.dx, "y": p.dy}).toList(),
+            "polygon": _currentPolygon
+                .map((p) => {"x": p.dx, "y": p.dy})
+                .toList(),
             "type": "safe",
           });
           _isDrawing = false;
           _currentPolygon.clear();
           _zoneNameController.clear();
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Zóna elmentve!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Zóna elmentve!')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hiba: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hiba: $e')));
       }
     }
   }
@@ -150,12 +153,18 @@ class _ZonesScreenState extends State<ZonesScreen> {
             // Usually this would pop, but we are in a bottom nav.
           },
         ),
-        title: Text(l10n.editZones, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+        title: Text(
+          l10n.editZones,
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.pets, color: AppColors.primary),
             onPressed: () {},
-          )
+          ),
         ],
         centerTitle: true,
       ),
@@ -170,8 +179,12 @@ class _ZonesScreenState extends State<ZonesScreen> {
                 color: AppColors.onSurface,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
-                  BoxShadow(color: AppColors.outline.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 4))
-                ]
+                  BoxShadow(
+                    color: AppColors.outline.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
@@ -179,9 +192,17 @@ class _ZonesScreenState extends State<ZonesScreen> {
                   fit: StackFit.expand,
                   children: [
                     if (_latestFrame != null)
-                      Image.memory(_latestFrame!, fit: BoxFit.cover, gaplessPlayback: true)
+                      Image.memory(
+                        _latestFrame!,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                      )
                     else
-                      const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      ),
 
                     if (_isDrawing)
                       GestureDetector(
@@ -199,7 +220,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                           ),
                         ),
                       ),
-                      
+
                     // Saved zones overlays
                     if (!_isDrawing && _existingZones.isNotEmpty)
                       Positioned.fill(
@@ -207,20 +228,6 @@ class _ZonesScreenState extends State<ZonesScreen> {
                           painter: SavedZonesPainter(_existingZones),
                         ),
                       ),
-                      
-                    if (!_isDrawing) ...[
-                      // Zoom buttons
-                      Positioned(
-                        bottom: 16, right: 16,
-                        child: Row(
-                          children: [
-                            _buildZoomBtn(Icons.zoom_in),
-                            const SizedBox(width: 8),
-                            _buildZoomBtn(Icons.zoom_out),
-                          ],
-                        ),
-                      )
-                    ]
                   ],
                 ),
               ),
@@ -230,76 +237,102 @@ class _ZonesScreenState extends State<ZonesScreen> {
             // Controls
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _isDrawing ? Column(
-                children: [
-                  TextField(
-                    controller: _zoneNameController,
-                    decoration: InputDecoration(
-                      hintText: 'Zóna neve...',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+              child: _isDrawing
+                  ? Column(
+                      children: [
+                        TextField(
+                          controller: _zoneNameController,
+                          decoration: InputDecoration(
+                            hintText: 'Zóna neve...',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => setState(() {
+                                  _isDrawing = false;
+                                  _currentPolygon.clear();
+                                }),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  side: const BorderSide(
+                                    color: AppColors.outline,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Text(
+                                  l10n.cancel,
+                                  style: const TextStyle(
+                                    color: AppColors.onSurface,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _saveZone,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.warning,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                ),
+                                child: Text(l10n.save),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => setState(() => _isDrawing = true),
+                        icon: const Icon(Icons.add_box_outlined),
+                        label: Text(
+                          l10n.addNewZone,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => setState(() {
-                            _isDrawing = false;
-                            _currentPolygon.clear();
-                          }),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: const BorderSide(color: AppColors.outline),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: Text(l10n.cancel, style: const TextStyle(color: AppColors.onSurface)),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _saveZone,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.warning,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: Text(l10n.save),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ) : SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => setState(() => _isDrawing = true),
-                  icon: const Icon(Icons.add_box_outlined),
-                  label: Text(l10n.addNewZone, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                ),
-              ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Existing Zones
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.existingZones, style: Theme.of(context).textTheme.headlineMedium),
+                  Text(
+                    l10n.existingZones,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: 16),
                   ..._existingZones.map((zone) {
                     IconData icon;
                     Color color;
                     Color bgColor;
                     String subtitle;
-                    
-                    switch(zone['type']) {
+
+                    switch (zone['type']) {
                       case 'safe':
                         icon = Icons.chair;
                         color = AppColors.primary;
@@ -326,7 +359,9 @@ class _ZonesScreenState extends State<ZonesScreen> {
                       decoration: BoxDecoration(
                         color: bgColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: zone['type'] == 'alert' ? Border.all(color: Colors.red.withOpacity(0.5)) : null,
+                        border: zone['type'] == 'alert'
+                            ? Border.all(color: Colors.red.withOpacity(0.5))
+                            : null,
                       ),
                       child: ListTile(
                         leading: Container(
@@ -338,10 +373,22 @@ class _ZonesScreenState extends State<ZonesScreen> {
                           ),
                           child: Icon(icon, color: color, size: 20),
                         ),
-                        title: Text(zone['name'], style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-                        subtitle: Text(subtitle, style: TextStyle(color: color)),
+                        title: Text(
+                          zone['name'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        subtitle: Text(
+                          subtitle,
+                          style: TextStyle(color: color),
+                        ),
                         trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
                           onPressed: () {
                             setState(() {
                               _existingZones.remove(zone);
@@ -367,24 +414,29 @@ class _ZonesScreenState extends State<ZonesScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))]
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: color, size: 16),
           const SizedBox(width: 4),
-          Text(name, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+          Text(
+            name,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildZoomBtn(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), borderRadius: BorderRadius.circular(8)),
-      child: Icon(icon, color: AppColors.onSurface, size: 20),
     );
   }
 }
@@ -440,17 +492,19 @@ class SavedZonesPainter extends CustomPainter {
       if (zone['polygon'] == null) continue;
       final polyRaw = zone['polygon'] as List<dynamic>;
       if (polyRaw.isEmpty) continue;
-      
-      final points = polyRaw.map((p) => Offset(p['x'].toDouble(), p['y'].toDouble())).toList();
+
+      final points = polyRaw
+          .map((p) => Offset(p['x'].toDouble(), p['y'].toDouble()))
+          .toList();
 
       if (points.length > 2) {
         final path = Path()..addPolygon(points, true);
-        
+
         final fillPaint = Paint()
           ..color = AppColors.primary.withOpacity(0.2)
           ..style = PaintingStyle.fill;
         canvas.drawPath(path, fillPaint);
-        
+
         final strokePaint = Paint()
           ..color = AppColors.primary
           ..strokeWidth = 2
@@ -480,15 +534,22 @@ class SavedZonesPainter extends CustomPainter {
           textDirection: TextDirection.ltr,
         );
         textPainter.layout();
-        
+
         final bgRect = RRect.fromRectAndRadius(
-          Rect.fromCenter(center: Offset(cx, cy), width: textPainter.width + 16, height: textPainter.height + 10),
+          Rect.fromCenter(
+            center: Offset(cx, cy),
+            width: textPainter.width + 16,
+            height: textPainter.height + 10,
+          ),
           const Radius.circular(12),
         );
         final bgPaint = Paint()..color = AppColors.onSurface.withOpacity(0.8);
         canvas.drawRRect(bgRect, bgPaint);
-        
-        textPainter.paint(canvas, Offset(cx - textPainter.width / 2, cy - textPainter.height / 2));
+
+        textPainter.paint(
+          canvas,
+          Offset(cx - textPainter.width / 2, cy - textPainter.height / 2),
+        );
       }
     }
   }
