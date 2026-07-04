@@ -376,6 +376,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
 
                     Text(
                       l10n.alertsTitle,
@@ -414,18 +415,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ],
                       ),
                     const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        final notifService = NotificationService();
-                        await notifService.requestPermissions();
-                        await notifService.showNotification(
-                          id: 999,
-                          title: l10n.testNotifTitle,
-                          body: l10n.testNotifBody,
-                        );
-                      },
-                      icon: const Icon(Icons.notifications_active),
-                      label: Text(l10n.testNotification),
+                    Center(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final notifService = NotificationService();
+                          await notifService.requestPermissions();
+                          await notifService.showNotification(
+                            id: 999,
+                            title: l10n.testNotifTitle,
+                            body: l10n.testNotifBody,
+                          );
+                        },
+                        icon: const Icon(Icons.notifications_active),
+                        label: Text(l10n.testNotification),
+                      ),
                     ),
 
                     const SizedBox(height: 32),
