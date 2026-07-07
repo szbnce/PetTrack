@@ -10,8 +10,11 @@ import 'dart:ui' as ui;
 import 'package:battery_plus/battery_plus.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'theme/app_theme.dart';
+import 'theme/colors.dart';
 
 late List<CameraDescription> _cameras;
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +32,13 @@ Future<void> main() async {
   final savedIp = prefs.getString('server_ip');
   final savedToken = prefs.getString('server_token');
   final savedClientId = prefs.getString('client_id');
+
+  final savedTheme = prefs.getString('theme_mode');
+  if (savedTheme == 'light') {
+    themeNotifier.value = ThemeMode.light;
+  } else {
+    themeNotifier.value = ThemeMode.dark;
+  }
 
   final bool skipSetup = savedIp != null && savedIp.isNotEmpty;
 
@@ -58,20 +68,24 @@ class PetTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'PetTrack Monitor',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.red[900],
-        scaffoldBackgroundColor: const Color(0xFF121212),
-      ),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, currentMode, child) {
+        return MaterialApp(
+          title: 'PetTrack Monitor',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: currentMode,
 
-      home: skipSetup
-          ? MonitorScreen(
-              serverIp: initialIp!,
-              token: initialToken!,
-              clientId: initialClientId,
-            )
-          : const SetupScreen(),
+          home: skipSetup
+              ? MonitorScreen(
+                  serverIp: initialIp!,
+                  token: initialToken!,
+                  clientId: initialClientId,
+                )
+              : const SetupScreen(),
+        );
+      },
     );
   }
 }
@@ -135,10 +149,7 @@ class _SetupScreenState extends State<SetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('🐾 PetTrack Setup'),
-        backgroundColor: Colors.red[900],
-      ),
+      appBar: AppBar(title: const Text('🐾 PetTrack Setup')),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -150,7 +161,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 const Icon(
                   Icons.warning_amber_rounded,
                   size: 60,
-                  color: Colors.orange,
+                  color: AppColors.warning,
                 ),
                 const SizedBox(height: 10),
                 const Text(
@@ -159,7 +170,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -185,6 +196,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     labelText: 'Device Name (Monitor ID)',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.badge),
+                    W,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -201,7 +213,6 @@ class _SetupScreenState extends State<SetupScreen> {
                 ElevatedButton.icon(
                   onPressed: _saveAndStart,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[900],
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
                   icon: const Icon(Icons.camera_alt),
@@ -428,7 +439,6 @@ class _MonitorScreenState extends State<MonitorScreen> {
     final mainScreen = Scaffold(
       appBar: AppBar(
         title: const Text('🐾 Monitor'),
-        backgroundColor: Colors.red[900],
         actions: [
           if (_isStreaming)
             IconButton(
@@ -439,7 +449,12 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
           PopupMenuButton<String>(
             onSelected: (value) async {
-              if (value == 'settings') {
+              if (value == 'theme') {
+                final isDark = themeNotifier.value == ThemeMode.dark;
+                themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('theme_mode', isDark ? 'light' : 'dark');
+              } else if (value == 'settings') {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const SetupScreen()),
@@ -478,6 +493,14 @@ class _MonitorScreenState extends State<MonitorScreen> {
             },
             itemBuilder: (BuildContext context) {
               return [
+                PopupMenuItem(
+                  value: 'theme',
+                  child: Text(
+                    themeNotifier.value == ThemeMode.dark
+                        ? '☀️ Light Mode'
+                        : '🌙 Dark Mode',
+                  ),
+                ),
                 const PopupMenuItem(value: 'settings', child: Text('Settings')),
                 const PopupMenuItem(value: 'about', child: Text('About')),
               ];
@@ -520,7 +543,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
                             ElevatedButton(
                               onPressed: _isStreaming ? null : _startStreaming,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
+                                backgroundColor: AppColors.success,
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 20,
                                   vertical: 15,
@@ -534,14 +558,17 @@ class _MonitorScreenState extends State<MonitorScreen> {
                             ElevatedButton(
                               onPressed: _isStreaming ? _stopStreaming : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.error,
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 20,
                                   vertical: 15,
                                 ),
                               ),
                               child: const Text(
-                                'stop',
+                                'Stop',
                                 style: TextStyle(fontSize: 16),
                               ),
                             ),
