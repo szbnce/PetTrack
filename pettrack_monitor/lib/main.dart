@@ -149,7 +149,7 @@ class _SetupScreenState extends State<SetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('🐾 PetTrack Setup')),
+      appBar: AppBar(title: const Text('PetTrack Monitor Setup')),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -196,7 +196,6 @@ class _SetupScreenState extends State<SetupScreen> {
                     labelText: 'Device Name (Monitor ID)',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.badge),
-                    W,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -513,10 +512,34 @@ class _MonitorScreenState extends State<MonitorScreen> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: Center(
-                    child: RepaintBoundary(
-                      key: _cameraKey,
-                      child: CameraPreview(_controller),
+                  child: Padding(
+                    padding: const EdgeInsetsGeometry.all(16.0),
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.5),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadiusGeometry.circular(14),
+                          child: RepaintBoundary(
+                            key: _cameraKey,
+                            child: CameraPreview(_controller),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
