@@ -16,6 +16,9 @@ dependencies:
   wakelock_plus: ^1.6.1
   battery_plus: ^7.1.0
   google_fonts: ^6.3.3
+  intl: ^0.20.2
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -24,3 +27,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true

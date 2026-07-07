@@ -12,9 +12,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'theme/app_theme.dart';
 import 'theme/colors.dart';
+import 'l10n/app_localizations.dart';
 
 late List<CameraDescription> _cameras;
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
+final ValueNotifier<Locale?> localeNotifier = ValueNotifier(null);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +40,11 @@ Future<void> main() async {
     themeNotifier.value = ThemeMode.light;
   } else {
     themeNotifier.value = ThemeMode.dark;
+  }
+
+  final savedLang = prefs.getString('language_code');
+  if (savedLang != null) {
+    localeNotifier.value = Locale(savedLang);
   }
 
   final bool skipSetup = savedIp != null && savedIp.isNotEmpty;
@@ -71,19 +78,29 @@ class PetTrackApp extends StatelessWidget {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
       builder: (context, currentMode, child) {
-        return MaterialApp(
-          title: 'PetTrack Monitor',
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: currentMode,
+        return ValueListenableBuilder<Locale?>(
+          valueListenable: localeNotifier,
+          builder: (context, currentLocale, child) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: "PetTrack Monitor",
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: currentMode,
 
-          home: skipSetup
-              ? MonitorScreen(
-                  serverIp: initialIp!,
-                  token: initialToken!,
-                  clientId: initialClientId,
-                )
-              : const SetupScreen(),
+              locale: currentLocale,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+
+              home: skipSetup
+                  ? MonitorScreen(
+                      serverIp: initialIp!,
+                      token: initialToken!,
+                      clientId: initialClientId,
+                    )
+                  : const SetupScreen(),
+            );
+          },
         );
       },
     );
@@ -102,6 +119,7 @@ class _SetupScreenState extends State<SetupScreen> {
   final TextEditingController _ipController = TextEditingController();
   final TextEditingController _tokenController = TextEditingController();
   final TextEditingController _clientIdController = TextEditingController();
+  String _selectedLanguage = 'en';
 
   @override
   void initState() {
@@ -117,6 +135,7 @@ class _SetupScreenState extends State<SetupScreen> {
           prefs.getString('server_token') ?? 'MYSUPERSECRETTOKEN';
       _clientIdController.text =
           prefs.getString('client_id') ?? 'unnamed_monitor';
+      _selectedLanguage = prefs.getString('language_code') ?? 'en';
     });
   }
 
@@ -125,6 +144,8 @@ class _SetupScreenState extends State<SetupScreen> {
     await prefs.setString('server_ip', _ipController.text);
     await prefs.setString('server_token', _tokenController.text);
     await prefs.setString('client_id', _clientIdController.text);
+    await prefs.setString('language_code', _selectedLanguage);
+    localeNotifier.value = Locale(_selectedLanguage);
 
     if (!mounted) return;
 
@@ -148,8 +169,10 @@ class _SetupScreenState extends State<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('PetTrack Monitor Setup')),
+      appBar: AppBar(title: Text(l10n.setupTitle)),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -164,8 +187,8 @@ class _SetupScreenState extends State<SetupScreen> {
                   color: AppColors.warning,
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'Next step',
+                Text(
+                  l10n.setupNextStep,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 22,
@@ -174,16 +197,16 @@ class _SetupScreenState extends State<SetupScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'Before you start this, go out from the app, go into the app information and turn on Autostart for this to work!',
+                Text(
+                  l10n.setupAutostartWarning,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 40),
                 TextField(
                   controller: _ipController,
-                  decoration: const InputDecoration(
-                    labelText: 'Backend server IP and Port',
+                  decoration: InputDecoration(
+                    labelText: l10n.setupServerIp,
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.computer),
                   ),
@@ -192,8 +215,8 @@ class _SetupScreenState extends State<SetupScreen> {
                 const SizedBox(height: 15),
                 TextField(
                   controller: _clientIdController,
-                  decoration: const InputDecoration(
-                    labelText: 'Device Name (Monitor ID)',
+                  decoration: InputDecoration(
+                    labelText: l10n.setupDeviceName,
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.badge),
                   ),
@@ -201,12 +224,34 @@ class _SetupScreenState extends State<SetupScreen> {
                 const SizedBox(height: 15),
                 TextField(
                   controller: _tokenController,
-                  decoration: const InputDecoration(
-                    labelText: 'Security Token',
+                  decoration: InputDecoration(
+                    labelText: l10n.setupSecurityToken,
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.security),
                   ),
                   obscureText: true,
+                ),
+                const SizedBox(height: 15),
+                DropdownButtonFormField<String>(
+                  value: _selectedLanguage,
+                  decoration: InputDecoration(
+                    labelText: l10n.languageTitle,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.language),
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'en',
+                      child: Text(l10n.languageEnglish),
+                    ),
+                    DropdownMenuItem(
+                      value: 'hu',
+                      child: Text(l10n.languageHungarian),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => _selectedLanguage = val);
+                  },
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
@@ -215,8 +260,8 @@ class _SetupScreenState extends State<SetupScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
                   icon: const Icon(Icons.camera_alt),
-                  label: const Text(
-                    'Save & Start',
+                  label: Text(
+                    l10n.setupSaveAndStart,
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -248,7 +293,6 @@ class MonitorScreen extends StatefulWidget {
 class _MonitorScreenState extends State<MonitorScreen> {
   late CameraController _controller;
 
-  // Itt jön a natív mágia a Channel helyett! 🔌
   WebSocket? _socket;
   bool _isInitialized = false;
   bool _isStreaming = false;
@@ -293,7 +337,6 @@ class _MonitorScreenState extends State<MonitorScreen> {
     }
   }
 
-  // Ez a függvény mostantól async, és a natív Socketet használja!
   Future<void> _connectWebSocket() async {
     if (!mounted) return;
 
@@ -435,14 +478,16 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     final mainScreen = Scaffold(
       appBar: AppBar(
-        title: const Text('🐾 Monitor'),
+        title: Text(l10n.monitorTitle),
         actions: [
           if (_isStreaming)
             IconButton(
               icon: const Icon(Icons.bedtime),
-              tooltip: 'Sleep Mode (Dim Screen)',
+              tooltip: l10n.monitorSleepMode,
               onPressed: () => setState(() => _isSleeping = true),
             ),
 
@@ -459,7 +504,6 @@ class _MonitorScreenState extends State<MonitorScreen> {
                   MaterialPageRoute(builder: (context) => const SetupScreen()),
                 );
 
-                // Ha visszajöttünk a beállításokból és elmentették
                 if (result == true && mounted) {
                   final prefs = await SharedPreferences.getInstance();
                   setState(() {
@@ -476,17 +520,13 @@ class _MonitorScreenState extends State<MonitorScreen> {
                 showAboutDialog(
                   context: context,
                   applicationName: 'PetTrack Monitor',
-                  applicationVersion: 'Alpha',
+                  applicationVersion: 'v1.0 Pre-Release',
                   applicationIcon: const Icon(
                     Icons.pets,
                     size: 50,
                     color: Colors.orange,
                   ),
-                  children: [
-                    const Text(
-                      'This app securely streams your camera feed to the PetTrack backend for analysis.',
-                    ),
-                  ],
+                  children: [Text(l10n.aboutDescription)],
                 );
               }
             },
@@ -500,8 +540,11 @@ class _MonitorScreenState extends State<MonitorScreen> {
                         : '🌙 Dark Mode',
                   ),
                 ),
-                const PopupMenuItem(value: 'settings', child: Text('Settings')),
-                const PopupMenuItem(value: 'about', child: Text('About')),
+                PopupMenuItem(
+                  value: 'settings',
+                  child: Text(l10n.settingsTitle),
+                ),
+                PopupMenuItem(value: 'about', child: Text(l10n.aboutTitle)),
               ];
             },
           ),
@@ -554,8 +597,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
                       children: [
                         Text(
                           _isStreaming
-                              ? 'Streaming live video...'
-                              : 'Waiting for START command...',
+                              ? l10n.monitorStreamingLive
+                              : l10n.monitorWaitingForStart,
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 18),
                         ),
@@ -573,8 +616,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
                                   vertical: 15,
                                 ),
                               ),
-                              child: const Text(
-                                'Start',
+                              child: Text(
+                                l10n.start,
                                 style: TextStyle(fontSize: 16),
                               ),
                             ),
@@ -590,8 +633,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
                                   vertical: 15,
                                 ),
                               ),
-                              child: const Text(
-                                'Stop',
+                              child: Text(
+                                l10n.stop,
                                 style: TextStyle(fontSize: 16),
                               ),
                             ),
@@ -599,11 +642,13 @@ class _MonitorScreenState extends State<MonitorScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Server:\n${widget.serverIp}',
+                          l10n.monitorServer(widget.serverIp),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white70,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.7),
                           ),
                         ),
                       ],
@@ -628,10 +673,10 @@ class _MonitorScreenState extends State<MonitorScreen> {
             color: Colors.black,
             width: double.infinity,
             height: double.infinity,
-            child: const Center(
+            child: Center(
               child: DefaultTextStyle(
                 style: TextStyle(color: Colors.white24, fontSize: 12),
-                child: Text('Sleeping... Double tap to wake'),
+                child: Text(l10n.monitorSleeping),
               ),
             ),
           ),

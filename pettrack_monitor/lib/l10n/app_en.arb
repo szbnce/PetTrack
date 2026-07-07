@@ -1,0 +1,40 @@
+{
+    "setupTitle": "PetTrack Monitor Setup",
+    "setupNextStep": "Next step",
+    "setupAutostartWarning": "Before you start this, go out from the app, go into the app information and turn on Autostart for this to work!",
+    "setupServerIp": "Backend server IP and Port",
+    "setupDeviceName": "Device Name (Monitor ID)",
+    "setupSecurityToken": "Security Token",
+    "setupSaveAndStart": "Save & Start",
+    "monitorTitle": "PetTrack Monitor",
+    "monitorSleepMode": "Sleep Mode (Dim Screen)",
+    "themeLight": "Light Mode",
+    "themeDark": "Dark Mode",
+    "settingsTitle": "Settings",
+    "aboutTitle": "About",
+    "aboutDescription": "This app securely streams your camera feed to the PetTrack backend.",
+    "monitorStreamingLive": "Streaming live video...",
+    "monitorWaitingForStart": "Waiting for START command...",
+    "start": "Start",
+    "stop": "Stop",
+    "monitorServer": "Server:\n{ip}",
+    "@monitorServer": {
+        "placeholders": {
+            "ip": {
+                "type": "String"
+            }
+        }
+    },
+    "monitorSleeping": "Sleeping... Double tap to wake",
+    "errorConnectionFailed": "Failed to connect to server! Check IP and Token.\nError: {error}",
+    "@errorConnectionFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "languageTitle": "Language",
+    "languageEnglish": "English",
+    "languageHungarian": "Magyar"
+}
