@@ -15,6 +15,7 @@
     "aboutDescription": "Ez az alkalmazás közvetíti a kameraképet a PetTrack Serverre.",
     "monitorStreamingLive": "Élő közvetítés folyamatban...",
     "monitorWaitingForStart": "Várakozás a START parancsra...",
+    "monitorReconnecting": "Újracsatlakozás...",
     "start": "Indítás",
     "stop": "Leállítás",
     "monitorServer": "Szerver:\n{ip}",

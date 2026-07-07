@@ -59,6 +59,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get monitorWaitingForStart => 'Várakozás a START parancsra...';
 
   @override
+  String get monitorReconnecting => 'Újracsatlakozás...';
+
+  @override
   String get start => 'Indítás';
 
   @override

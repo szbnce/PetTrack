@@ -15,6 +15,7 @@
     "aboutDescription": "This app securely streams your camera feed to the PetTrack backend.",
     "monitorStreamingLive": "Streaming live video...",
     "monitorWaitingForStart": "Waiting for START command...",
+    "monitorReconnecting": "Reconnecting...",
     "start": "Start",
     "stop": "Stop",
     "monitorServer": "Server:\n{ip}",

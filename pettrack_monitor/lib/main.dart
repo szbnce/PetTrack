@@ -303,6 +303,9 @@ class _MonitorScreenState extends State<MonitorScreen> {
   final GlobalKey _cameraKey = GlobalKey();
   final Battery _battery = Battery();
   Timer? _statusTimer;
+  Timer? _reconnectTimer;
+  bool _shouldStream = false;
+  bool _isReconnecting = false;
 
   late String _currentIp;
   late String _currentToken;
@@ -337,6 +340,16 @@ class _MonitorScreenState extends State<MonitorScreen> {
     }
   }
 
+  void _scheduleReconnect() {
+    if (!mounted) return;
+    setState(() => _isReconnecting = true);
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(const Duration(seconds: 5), () {
+      debugPrint("Attempting to reconnect...");
+      _connectWebSocket();
+    });
+  }
+
   Future<void> _connectWebSocket() async {
     if (!mounted) return;
 
@@ -347,27 +360,35 @@ class _MonitorScreenState extends State<MonitorScreen> {
       ).timeout(const Duration(seconds: 5));
 
       debugPrint("Connected successfully!");
+      _reconnectTimer?.cancel();
+      if (mounted) setState(() => _isReconnecting = false);
 
-      // Figyeljük a szerver utasításait
+      if (_shouldStream) {
+        _startStreaming();
+      }
+
       _socket!.listen(
         (message) {
           if (message == "START") {
             _startStreaming();
           } else if (message == "STOP") {
-            _stopStreaming();
+            _stopStreaming(isManual: true);
           }
         },
         onDone: () {
           debugPrint("Server disconnected!");
-          _stopStreaming();
+          _stopStreaming(isManual: false);
+          _scheduleReconnect();
         },
         onError: (error) {
           debugPrint("WebSocket error: $error");
-          _stopStreaming();
+          _stopStreaming(isManual: false);
+          _scheduleReconnect();
         },
       );
     } catch (e) {
       debugPrint("Failed to connect: $e");
+      _scheduleReconnect();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -383,6 +404,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
   }
 
   void _startStreaming() {
+    _shouldStream = true;
     if (_isStreaming || !_isInitialized) return;
 
     setState(() => _isStreaming = true);
@@ -403,7 +425,10 @@ class _MonitorScreenState extends State<MonitorScreen> {
     });
   }
 
-  void _stopStreaming() {
+  void _stopStreaming({bool isManual = false}) {
+    if (isManual) {
+      _shouldStream = false;
+    }
     if (!_isStreaming) return;
 
     _streamTimer?.cancel();
@@ -471,6 +496,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
   @override
   void dispose() {
     _streamTimer?.cancel();
+    _statusTimer?.cancel();
+    _reconnectTimer?.cancel();
     _controller.dispose();
     _socket?.close();
     super.dispose();
@@ -598,6 +625,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
                         Text(
                           _isStreaming
                               ? l10n.monitorStreamingLive
+                              : _isReconnecting
+                              ? l10n.monitorReconnecting
                               : l10n.monitorWaitingForStart,
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 18),
@@ -622,7 +651,9 @@ class _MonitorScreenState extends State<MonitorScreen> {
                               ),
                             ),
                             ElevatedButton(
-                              onPressed: _isStreaming ? _stopStreaming : null,
+                              onPressed: _isStreaming
+                                  ? () => _stopStreaming(isManual: true)
+                                  : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Theme.of(
                                   context,

@@ -59,6 +59,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get monitorWaitingForStart => 'Waiting for START command...';
 
   @override
+  String get monitorReconnecting => 'Reconnecting...';
+
+  @override
   String get start => 'Start';
 
   @override

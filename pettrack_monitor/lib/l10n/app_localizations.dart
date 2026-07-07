@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Waiting for START command...'**
   String get monitorWaitingForStart;
 
+  /// No description provided for @monitorReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting...'**
+  String get monitorReconnecting;
+
   /// No description provided for @start.
   ///
   /// In en, this message translates to:
