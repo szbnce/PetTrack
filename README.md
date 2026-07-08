@@ -63,7 +63,7 @@ This project just started out, there isn't a magical all-in-one working app *yet
 </td>
 <td width="50%" valign="top">
 
-### Client App (The viewer)
+### Client App (The Viewer)
 - **Clean UI**: Simple and intuitive interface for easy navigation.
 - **Live Feed Access**: Beautiful UI to keep track of your furry friends.
 - **Customizeable Zones**: Draw zones on the camera feed for motion detection and alerts.
@@ -177,10 +177,10 @@ If you have any questions, issues, or suggestions, please open an [Issue](https:
 
 ## 📝 License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the **GPLv3 License**.
 
 ---
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/szbnce">szbnce</a> for Pet's and Pet Owners
+  Made with ❤️ by <a href="https://github.com/szbnce">szbnce</a> for Pets and Pet Owners
 </p>
