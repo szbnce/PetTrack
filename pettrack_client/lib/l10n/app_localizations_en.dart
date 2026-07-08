@@ -242,4 +242,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeDark => 'Dark';
+
+  @override
+  String failedToLoadPetProfile(String e) {
+    return 'Failed to load Pet Profile $e';
+  }
+
+  @override
+  String get invalidSecretToken => 'Invalid Secret Token!';
+
+  @override
+  String get serverUnreachable => 'Server Unreachable!';
+
+  @override
+  String decodingErrorZones(String e) {
+    return 'Decoding error at zones: $e';
+  }
+
+  @override
+  String decodingError(String e) {
+    return 'Decoding error: $e';
+  }
+
+  @override
+  String profileUploadError(String e) {
+    return 'Profile upload error: $e';
+  }
 }

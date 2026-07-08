@@ -130,7 +130,7 @@ class _BootScreenState extends State<BootScreen> {
   Future<void> _checkSetup() async {
     final prefs = await SharedPreferences.getInstance();
     final ip = prefs.getString('server_ip');
-    final token = prefs.getString('server_token');
+    final token = prefs.getString('api_token');
     final petName = prefs.getString('pet_name') ?? 'Bodri';
 
     await Future.delayed(const Duration(milliseconds: 800));

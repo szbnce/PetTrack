@@ -69,5 +69,11 @@
   "appearance": "Megjelenés (Téma)",
   "themeSystem": "Rendszer alapértelmezett",
   "themeLight": "Világos",
-  "themeDark": "Sötét"
+  "themeDark": "Sötét",
+  "failedToLoadPetProfile": "Nem sikerült betölteni a profilt: {e}",
+  "invalidSecretToken": "Hibás Secret Token!",
+  "serverUnreachable": "Szerver nem elérhető!",
+  "decodingErrorZones": "Dekódolási hiba zónáknál: {e}",
+  "decodingError": "Dekódolási hiba: {e}",
+  "profileUploadError": "Profil feltöltés hiba: {e}"
 }

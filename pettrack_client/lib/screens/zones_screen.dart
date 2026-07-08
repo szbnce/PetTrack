@@ -4,7 +4,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pettrack_client/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/colors.dart';
+import 'package:encrypt/encrypt.dart' as enc;
+import 'package:crypto/crypto.dart';
 
 class ZonesScreen extends StatefulWidget {
   final String serverIp;
@@ -18,6 +21,7 @@ class ZonesScreen extends StatefulWidget {
 
 class _ZonesScreenState extends State<ZonesScreen> {
   Uint8List? _latestFrame;
+  String? _rawSecret;
   Timer? _timer;
   List<Offset> _currentPolygon = [];
   bool _isDrawing = false;
@@ -28,7 +32,13 @@ class _ZonesScreenState extends State<ZonesScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSecret();
     _startPolling();
+  }
+
+  Future<void> _loadSecret() async {
+    final prefs = await SharedPreferences.getInstance();
+    _rawSecret = prefs.getString('raw_secret') ?? "MYSUPERSECRETTOKEN";
   }
 
   void _startPolling() {
@@ -67,6 +77,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
   }
 
   Future<void> _fetchFrame() async {
+    if (_rawSecret == null) return;
     try {
       final response = await http
           .get(
@@ -76,7 +87,25 @@ class _ZonesScreenState extends State<ZonesScreen> {
           .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200 && mounted) {
-        setState(() => _latestFrame = response.bodyBytes);
+        try {
+          final keyBytes = sha256.convert(utf8.encode(_rawSecret!)).bytes;
+          final key = enc.Key.fromBase64(base64Url.encode(keyBytes));
+          final encrypter = enc.Encrypter(enc.Fernet(key));
+
+          final encryptedString = utf8.decode(response.bodyBytes);
+          final decryptedBytes = encrypter.decryptBytes(
+            enc.Encrypted.fromBase64(encryptedString),
+          );
+
+          setState(() {
+            _latestFrame = Uint8List.fromList(decryptedBytes);
+          });
+        } catch (e) {
+          if (mounted) {
+            final l10n = AppLocalizations.of(context)!;
+            print(l10n.decodingErrorZones(e.toString()));
+          }
+        }
       }
     } catch (_) {}
   }
@@ -155,7 +184,10 @@ class _ZonesScreenState extends State<ZonesScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           onPressed: () {
             // Usually this would pop, but we are in a bottom nav.
           },
@@ -360,7 +392,9 @@ class _ZonesScreenState extends State<ZonesScreen> {
                                   l10n.cancel,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -554,7 +588,8 @@ class PolygonPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final paintPoint = Paint()
-      ..color = Colors.white // Paint color for polygon nodes (keep white)
+      ..color = Colors
+          .white // Paint color for polygon nodes (keep white)
       ..style = PaintingStyle.fill;
 
     if (points.isEmpty) return;

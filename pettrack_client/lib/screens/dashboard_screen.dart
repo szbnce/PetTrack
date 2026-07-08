@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pettrack_client/l10n/app_localizations.dart';
 import '../theme/colors.dart';
 import '../services/notification_service.dart';
+import 'package:encrypt/encrypt.dart' as enc;
+import 'package:crypto/crypto.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String serverIp;
@@ -28,6 +30,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   Uint8List? _latestFrame;
+  String? _rawSecret;
   Timer? _timer;
   List<dynamic> _activities = [];
   Uint8List? _profilePicBytes;
@@ -72,6 +75,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     NotificationService().requestPermissions();
     _loadAlertSettings();
     _loadProfilePic();
+    _loadSecret();
+
     _startPolling();
   }
 
@@ -108,7 +113,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  Future<void> _loadSecret() async {
+    final prefs = await SharedPreferences.getInstance();
+    _rawSecret = prefs.getString('raw_secret') ?? "MYSUPERSECRETTOKEN";
+  }
+
   Future<void> _fetchFrame() async {
+    if (_rawSecret == null) return;
     try {
       final response = await http
           .get(
@@ -118,25 +129,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200 && mounted) {
-        if (response.headers['content-type']?.contains('application/json') ?? false) {
+        if (response.headers['content-type']?.contains('application/json') ??
+            false) {
           setState(() {
             _latestFrame = null;
             _hasCameraError = true;
           });
         } else {
-          DateTime? lastModified;
-          final lmHeader = response.headers['last-modified'];
-          if (lmHeader != null) {
-            try {
-              lastModified = HttpDate.parse(lmHeader);
-            } catch (_) {}
+          try {
+            final keyBytes = sha256.convert(utf8.encode(_rawSecret!)).bytes;
+            final key = enc.Key.fromBase64(base64Url.encode(keyBytes));
+            final encrypter = enc.Encrypter(enc.Fernet(key));
+
+            final encryptedString = utf8.decode(response.bodyBytes);
+            final decryptedBytes = encrypter.decryptBytes(
+              enc.Encrypted.fromBase64(encryptedString),
+            );
+
+            DateTime? lastModified;
+            final lmHeader = response.headers['last-modified'];
+            if (lmHeader != null) {
+              try {
+                lastModified = HttpDate.parse(lmHeader);
+              } catch (_) {}
+            }
+
+            setState(() {
+              _latestFrame = Uint8List.fromList(decryptedBytes);
+              _hasCameraError = false;
+              _frameTimestamp = lastModified;
+            });
+          } catch (e) {
+            if (mounted) {
+              final l10n = AppLocalizations.of(context)!;
+              print(l10n.decodingError(e.toString()));
+            }
+            setState(() => _hasCameraError = true);
           }
-          
-          setState(() {
-            _latestFrame = response.bodyBytes;
-            _hasCameraError = false;
-            _frameTimestamp = lastModified;
-          });
         }
       } else if (mounted) {
         setState(() => _hasCameraError = true);
@@ -233,24 +262,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  ({String text, Color textColor, Color bgColor}) _getBadgeInfo(AppLocalizations l10n) {
+  ({String text, Color textColor, Color bgColor}) _getBadgeInfo(
+    AppLocalizations l10n,
+  ) {
     if (_hasCameraError || _latestFrame == null) {
-      return (text: "OFFLINE!", textColor: Colors.red, bgColor: const Color(0xFFFFE5E5));
+      return (
+        text: "OFFLINE!",
+        textColor: Colors.red,
+        bgColor: const Color(0xFFFFE5E5),
+      );
     }
-    
+
     if (_frameTimestamp != null) {
       final diff = DateTime.now().toUtc().difference(_frameTimestamp!);
       final sec = diff.inSeconds;
       if (sec <= 10) {
-        return (text: "Live", textColor: Colors.green[800]!, bgColor: Colors.green[100]!);
+        return (
+          text: "Live",
+          textColor: Colors.green[800]!,
+          bgColor: Colors.green[100]!,
+        );
       } else if (sec <= 30) {
-        return (text: l10n.secondsAgo(sec), textColor: Colors.lightGreen[800]!, bgColor: Colors.lightGreen[100]!);
+        return (
+          text: l10n.secondsAgo(sec),
+          textColor: Colors.lightGreen[800]!,
+          bgColor: Colors.lightGreen[100]!,
+        );
       } else {
-        return (text: l10n.secondsAgo(sec), textColor: Colors.orange[800]!, bgColor: Colors.orange[100]!);
+        return (
+          text: l10n.secondsAgo(sec),
+          textColor: Colors.orange[800]!,
+          bgColor: Colors.orange[100]!,
+        );
       }
     }
-    
-    return (text: "Live", textColor: Colors.green[800]!, bgColor: Colors.green[100]!);
+
+    return (
+      text: "Live",
+      textColor: Colors.green[800]!,
+      bgColor: Colors.green[100]!,
+    );
   }
 
   @override
@@ -317,7 +368,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ? MemoryImage(_profilePicBytes!)
                             : null,
                         child: _profilePicBytes == null
-                            ? Icon(_getPetIcon(_petType), color: Theme.of(context).colorScheme.onPrimary)
+                            ? Icon(
+                                _getPetIcon(_petType),
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              )
                             : null,
                       ),
                       const SizedBox(width: 8),
@@ -400,7 +454,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                       ),
                     );
-                  }
+                  },
                 ),
               ],
             ),
@@ -460,7 +514,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           color: AppColors.primary,
                         ),
                       ),
-
 
                     // Overlay Chips
                     Positioned(

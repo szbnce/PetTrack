@@ -242,4 +242,30 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get themeDark => 'Sötét';
+
+  @override
+  String failedToLoadPetProfile(String e) {
+    return 'Nem sikerült betölteni a profilt: $e';
+  }
+
+  @override
+  String get invalidSecretToken => 'Hibás Secret Token!';
+
+  @override
+  String get serverUnreachable => 'Szerver nem elérhető!';
+
+  @override
+  String decodingErrorZones(String e) {
+    return 'Dekódolási hiba zónáknál: $e';
+  }
+
+  @override
+  String decodingError(String e) {
+    return 'Dekódolási hiba: $e';
+  }
+
+  @override
+  String profileUploadError(String e) {
+    return 'Profil feltöltés hiba: $e';
+  }
 }

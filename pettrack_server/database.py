@@ -24,6 +24,14 @@ async def init_db():
                 type TEXT DEFAULT 'safe'
                 )
         """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS pets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                type TEXT NOT NULL,
+                profile_pic TEXT
+                )
+        """)
         try:
             await db.execute("ALTER TABLE zones ADD COLUMN type TEXT DEFAULT 'safe'")
         except Exception:
@@ -66,3 +74,19 @@ async def get_zones():
         cursor = await db.execute("SELECT * FROM zones")
         rows = await cursor.fetchall()
         return [{"name": row["name"],"polygon": json.loads(row["polygon"]), "type": dict(row).get("type", "safe")} for row in rows]
+
+async def get_pet():
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute("SELECT * FROM pets ORDER BY id DESC LIMIT 1")
+        row = await cursor.fetchone()
+        return dict(row) if row else None
+
+async def save_pet(name: str, type: str, profile_pic: str = None):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("DELETE FROM pets")
+        await db.execute(
+            "INSERT INTO pets (name, type, profile_pic) VALUES (?, ?, ?)",
+            (name, type, profile_pic)
+        )
+        await db.commit()

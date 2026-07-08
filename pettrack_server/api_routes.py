@@ -3,19 +3,36 @@ import glob
 from fastapi import APIRouter, Depends, HTTPException, Query, Header, Response
 from fastapi.responses import FileResponse
 from typing import List, Dict
-from schemas import ZoneConfig, Point, MonitorUpdate
-from database import save_zones, get_zones, get_events
+from schemas import ZoneConfig, Point, MonitorUpdate, LoginRequest, PetProfile
+from database import save_zones, get_zones, get_events, get_pet, save_pet
 import time
 from email.utils import formatdate
+import jwt
+from cryptography.fernet import Fernet
+import base64
+import hashlib
 
 SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
 
+def get_fernet_key(secret: str) -> bytes:
+    digest = hashlib.sha256(secret.encode()).digest()
+    return base64.urlsafe_b64encode(digest)
+
+fernet = Fernet(get_fernet_key(SECRET_TOKEN))
+
 async def verify_token(token: str = Query(None), x_api_token: str = Header(None)):
     req_token = token or x_api_token
-    if req_token != SECRET_TOKEN:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    if not req_token:
+        raise HTTPException(status_code=401, detail="Token missing")
+
+    try:
+        payload = jwt.decode(req_token, SECRET_TOKEN, algorithms=["HS256"])
+    except jwt.PyJWTError:
+        if req_token != SECRET_TOKEN:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
 router = APIRouter(dependencies=[Depends(verify_token)])
+auth_router = APIRouter()
 
 monitor_state = {
     "online": False,
@@ -41,6 +58,24 @@ async def get_status():
         "battery_level": monitor_state.get("battery_level", 100),
         "is_charging": monitor_state.get("is_charging", False),
     }
+
+@auth_router.post("/api/auth/login")
+async def login(req: LoginRequest):
+    if req.secret != SECRET_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid secret")
+    
+    encoded_jwt = jwt.encode({"auth": "ok", "exp": time.time() + 86400 * 30}, SECRET_TOKEN, algorithm="HS256")
+    return {"token": encoded_jwt}
+
+@router.get("/api/pet")
+async def get_pet_profile():
+    pet = await get_pet()
+    return pet if pet else {"name": "Unknown", "type": "Unknown", "profile_pic": None}
+
+@router.post("/api/pet")
+async def update_pet_profile(pet: PetProfile):
+    await save_pet(pet.name, pet.type, pet.profile_pic)
+    return {"status": "ok"}
 
 @router.post("/api/monitor/update")
 async def update_monitor_status(update: MonitorUpdate):
@@ -74,7 +109,8 @@ async def get_latest_frame():
         headers = {
             "Last-Modified": formatdate(latest_frame_info["timestamp"], usegmt=True)
         }
-        return Response(content=latest_frame_info["data"], media_type="image/png", headers=headers)
+        encrypted_data = fernet.encrypt(latest_frame_info["data"])
+        return Response(content=encrypted_data, media_type="application/octet-stream", headers=headers)
     
     folder = "captured_images"
     if not os.path.exists(folder):
@@ -85,4 +121,10 @@ async def get_latest_frame():
         return {"error": "No images found"}
 
     latest = max(files, key=os.path.getmtime)
-    return FileResponse(latest, media_type="image/png")
+    with open(latest, "rb") as f:
+        img_data = f.read()
+    encrypted_data = fernet.encrypt(img_data)
+    headers = {
+        "Last-Modified": formatdate(os.path.getmtime(latest), usegmt=True)
+    }
+    return Response(content=encrypted_data, media_type="application/octet-stream", headers=headers)

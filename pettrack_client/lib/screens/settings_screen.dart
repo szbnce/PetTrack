@@ -8,6 +8,7 @@ import '../theme/colors.dart';
 import '../main.dart';
 import 'main_navigation.dart';
 import '../services/notification_service.dart';
+import 'package:http/http.dart' as http;
 
 class SettingsScreen extends StatefulWidget {
   final bool isSetup;
@@ -73,19 +74,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    final ip = prefs.getString('server_ip') ?? '';
+    final token = prefs.getString('api_token') ?? '';
+
     setState(() {
-      _ipController.text = prefs.getString('server_ip') ?? '';
-      _tokenController.text = prefs.getString('server_token') ?? '';
-      _petNameController.text = prefs.getString('pet_name') ?? 'Bodri';
-      _profilePicBase64 = prefs.getString('profile_pic');
+      _ipController.text = ip;
+      _tokenController.text = prefs.getString('raw_secret') ?? '';
       _languageCode = prefs.getString('language_code') ?? 'hu';
-      _petType = prefs.getString('pet_type') ?? 'rabbit';
       _themeModeString = prefs.getString('theme_mode') ?? 'system';
       _alertsZoneEnabled = prefs.getBool('alerts_zone_enabled') ?? true;
       _alertsBatteryEnabled = prefs.getBool('alerts_battery_enabled') ?? true;
       _batteryThreshold = prefs.getDouble('alerts_battery_threshold') ?? 20.0;
-      _isLoading = false;
     });
+
+    if (ip.isNotEmpty && token.isNotEmpty) {
+      try {
+        final response = await http
+            .get(
+              Uri.parse('http://$ip/api/pet'),
+              headers: {'x-api-token': token},
+            )
+            .timeout(const Duration(seconds: 3));
+
+        if (response.statusCode == 200 && mounted) {
+          final petData = jsonDecode(response.body);
+          setState(() {
+            _petNameController.text = petData['name'] ?? 'Juan';
+            _petType = petData['type'] ?? 'rabbit';
+            _profilePicBase64 = petData['profile_pic'];
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.failedToLoadPetProfile(e.toString()))),
+          );
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _pickImage() async {
@@ -101,8 +134,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('server_ip', _ipController.text.trim());
-    await prefs.setString('server_token', _tokenController.text.trim());
+    final ip = _ipController.text.trim();
+    final secret = _tokenController.text.trim();
+
+    setState(() => _isLoading = true);
+
+    String jwtToken = prefs.getString('api_token') ?? '';
+    try {
+      final authRes = await http
+          .post(
+            Uri.parse('http://$ip/api/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({"secret": secret}),
+          )
+          .timeout(const Duration(seconds: 3));
+      if (authRes.statusCode == 200) {
+        final data = jsonDecode(authRes.body);
+        jwtToken = data['token'];
+      } else {
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.invalidSecretToken)));
+          setState(() => _isLoading = false);
+        }
+        return;
+      }
+    } catch (e) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.serverUnreachable)));
+        setState(() => _isLoading = false);
+      }
+      return;
+    }
+
+    try {
+      await http
+          .post(
+            Uri.parse('http://$ip/api/pet'),
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-token': jwtToken,
+            },
+            body: jsonEncode({
+              "name": _petNameController.text.trim(),
+              "type": _petType,
+              "profile_pic": _profilePicBase64,
+            }),
+          )
+          .timeout(const Duration(seconds: 3));
+    } catch (e) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        print(l10n.decodingError(e.toString()));
+      }
+    }
+
+    await prefs.setString('server_ip', ip);
+    await prefs.setString('api_token', jwtToken);
+    await prefs.setString('raw_secret', secret);
     await prefs.setString('pet_name', _petNameController.text.trim());
     await prefs.setString('language_code', _languageCode);
     await prefs.setString('pet_type', _petType);
@@ -117,6 +211,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     if (mounted) {
+      setState(() => _isLoading = false);
       PetTrackClientApp.setLocale(context, Locale(_languageCode));
 
       ThemeMode newMode;

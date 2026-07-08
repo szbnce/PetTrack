@@ -5,7 +5,7 @@ import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from manager import manager
-from api_routes import router as zones_router, monitor_state, active_zones, update_latest_frame
+from api_routes import router as zones_router, auth_router, monitor_state, active_zones, update_latest_frame
 from tasks import cleanup_old_images
 from vision import process_and_save_frame
 from database import init_db, get_zones
@@ -13,6 +13,7 @@ from database import init_db, get_zones
 app = FastAPI()
 
 app.include_router(zones_router)
+app.include_router(auth_router)
 
 @app.on_event("startup")
 async def startup_event():

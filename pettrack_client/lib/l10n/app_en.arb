@@ -139,5 +139,34 @@
   "appearance": "Appearance (Theme)",
   "themeSystem": "System default",
   "themeLight": "Light",
-  "themeDark": "Dark"
+  "themeDark": "Dark",
+  "failedToLoadPetProfile": "Failed to load Pet Profile {e}",
+  "@failedToLoadPetProfile": {
+    "placeholders": {
+      "e": { "type": "String" }
+    }
+  },
+  "invalidSecretToken": "Invalid Secret Token!",
+  "serverUnreachable": "Server Unreachable!",
+  "decodingErrorZones": "Decoding error at zones: {e}",
+  "@decodingErrorZones": {
+    "placeholders": { 
+      "e": { "type": "String" 
+      } 
+    }
+  },
+  "decodingError": "Decoding error: {e}",
+  "@decodingError": {
+    "placeholders": { 
+      "e": { "type": "String" 
+      } 
+    }
+  },
+  "profileUploadError": "Profile upload error: {e}",
+  "@profileUploadError": {
+    "placeholders": { 
+      "e": { "type": "String" 
+      } 
+    }
+  }
 }

@@ -30,7 +30,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void initState() {
     super.initState();
     _screens = [
-      DashboardScreen(serverIp: widget.serverIp, token: widget.token, petName: widget.petName),
+      DashboardScreen(
+        serverIp: widget.serverIp,
+        token: widget.token,
+        petName: widget.petName,
+      ),
       ZonesScreen(serverIp: widget.serverIp, token: widget.token),
       const SettingsScreen(), // Settings now loads from SharedPreferences inside
     ];
@@ -45,7 +49,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: _screens[_selectedIndex],
@@ -56,7 +60,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               color: AppColors.outline.withOpacity(0.08),
               blurRadius: 20,
               offset: const Offset(0, -4),
-            )
+            ),
           ],
         ),
         child: ClipRRect(
@@ -86,8 +90,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             backgroundColor: Theme.of(context).cardColor,
             type: BottomNavigationBarType.fixed,
             elevation: 0,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
           ),
         ),
       ),

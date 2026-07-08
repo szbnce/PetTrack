@@ -523,6 +523,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dark'**
   String get themeDark;
+
+  /// No description provided for @failedToLoadPetProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load Pet Profile {e}'**
+  String failedToLoadPetProfile(String e);
+
+  /// No description provided for @invalidSecretToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Secret Token!'**
+  String get invalidSecretToken;
+
+  /// No description provided for @serverUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Server Unreachable!'**
+  String get serverUnreachable;
+
+  /// No description provided for @decodingErrorZones.
+  ///
+  /// In en, this message translates to:
+  /// **'Decoding error at zones: {e}'**
+  String decodingErrorZones(String e);
+
+  /// No description provided for @decodingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Decoding error: {e}'**
+  String decodingError(String e);
+
+  /// No description provided for @profileUploadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile upload error: {e}'**
+  String profileUploadError(String e);
 }
 
 class _AppLocalizationsDelegate
