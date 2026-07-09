@@ -107,6 +107,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 .toLowerCase();
             _profilePicBase64 = petData['profile_pic'];
           });
+          
+          if (_profilePicBase64 != null) {
+            await prefs.setString('profile_pic', _profilePicBase64!);
+          } else {
+            await prefs.remove('profile_pic');
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -127,7 +133,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 70,
+    );
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       setState(() {
@@ -177,11 +188,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('alerts_zone_enabled', _alertsZoneEnabled);
     await prefs.setBool('alerts_battery_enabled', _alertsBatteryEnabled);
     await prefs.setDouble('alerts_battery_threshold', _batteryThreshold);
+
     if (_profilePicBase64 != null) {
       await prefs.setString('profile_pic', _profilePicBase64!);
     } else {
       await prefs.remove('profile_pic');
     }
+
 
     if (mounted) {
       setState(() => _isLoading = false);
