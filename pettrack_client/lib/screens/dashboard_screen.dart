@@ -34,6 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _timer;
   bool _isServerOnline = true;
   List<dynamic> _activities = [];
+  Map<String, DateTime> _lastZoneAlerts = {};
   Uint8List? _profilePicBytes;
   String _petType = 'rabbit';
   String? _monitorId;
@@ -45,6 +46,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _hasAlertedBattery = false;
   bool _hasCameraError = false;
   DateTime? _frameTimestamp;
+
+  String get _displayPetName {
+    return widget.petName.isEmpty
+        ? AppLocalizations.of(context)!.unknown
+        : widget.petName;
+  }
 
   IconData _getPetIcon(String type) {
     switch (type) {
@@ -186,7 +193,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final response = await http
           .get(
-            Uri.parse('http://${widget.serverIp}/api/activity?limit=5'),
+            Uri.parse('http://${widget.serverIp}/api/activity?limit=50'),
             headers: {'x-api-token': widget.token},
           )
           .timeout(const Duration(seconds: 2));
@@ -208,13 +215,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             final isEnter = ev['event_type'] == 'zone_enter';
             final l10n = AppLocalizations.of(context)!;
             final zoneName = ev['zone_name'] ?? l10n.unknown;
-            NotificationService().showNotification(
-              id: 2,
-              title: l10n.alertsTitle,
-              body: isEnter
-                  ? l10n.zoneEntered(widget.petName, zoneName)
-                  : l10n.zoneLeft(widget.petName, zoneName),
-            );
+            final now = DateTime.now();
+            final lastAlert = _lastZoneAlerts[zoneName];
+            if (lastAlert == null ||
+                now.difference(lastAlert).inSeconds >= 60) {
+              _lastZoneAlerts[zoneName] = now;
+              NotificationService().showNotification(
+                id: 2,
+                title: l10n.alertsTitle,
+                body: isEnter
+                    ? l10n.zoneEntered(_displayPetName, zoneName)
+                    : l10n.zoneLeft(_displayPetName, zoneName),
+              );
+            }
           }
           setState(() => _activities = newEvents);
         }
@@ -386,7 +399,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.petName,
+                            _displayPetName,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -645,8 +658,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     isEnter ? Icons.meeting_room : Icons.directions_walk,
                     isEnter ? AppColors.primary : AppColors.secondary,
                     isEnter
-                        ? l10n.zoneEntered(widget.petName, zone)
-                        : l10n.zoneLeft(widget.petName, zone),
+                        ? l10n.zoneEntered(_displayPetName, zone)
+                        : l10n.zoneLeft(_displayPetName, zone),
                     isEnter ? l10n.cameraDetectedMovement : l10n.leftTheZone,
                     timeString,
                     isLast: index == _activities.length - 1,

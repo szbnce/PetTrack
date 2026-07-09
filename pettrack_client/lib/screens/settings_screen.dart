@@ -100,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (response.statusCode == 200 && mounted) {
           final petData = jsonDecode(response.body);
           setState(() {
-            _petNameController.text = petData['name'] ?? 'Juan';
+            _petNameController.text = petData['name'] ?? '';
             _petType = (petData['type'] ?? 'rabbit')
                 .toString()
                 .replaceFirst('petType', '')
@@ -219,9 +219,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 MainNavigationScreen(
                   serverIp: _ipController.text.trim(),
                   token: _tokenController.text.trim(),
-                  petName: _petNameController.text.trim().isEmpty
-                      ? 'Bodri'
-                      : _petNameController.text.trim(),
+                  petName: _petNameController.text.trim(),
                 ),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {

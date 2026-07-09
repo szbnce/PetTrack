@@ -131,7 +131,7 @@ class _BootScreenState extends State<BootScreen> {
     final prefs = await SharedPreferences.getInstance();
     final ip = prefs.getString('server_ip');
     final token = prefs.getString('jwt_token');
-    final petName = prefs.getString('pet_name') ?? 'Bodri';
+    final petName = prefs.getString('pet_name') ?? '';
     final isSetupCompleted = prefs.getBool('is_setup_completed') ?? false;
 
     await Future.delayed(const Duration(milliseconds: 800));
