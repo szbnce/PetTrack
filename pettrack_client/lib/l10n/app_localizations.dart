@@ -661,6 +661,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get settingsQrDialogDone;
+
+  /// No description provided for @settingsResetApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset App & Restart Setup'**
+  String get settingsResetApp;
+
+  /// No description provided for @settingsResetConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure?'**
+  String get settingsResetConfirmTitle;
+
+  /// No description provided for @settingsResetConfirmDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete all saved data and restart the setup wizard.'**
+  String get settingsResetConfirmDesc;
+
+  /// No description provided for @yesImSure.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, I\'m sure'**
+  String get yesImSure;
 }
 
 class _AppLocalizationsDelegate

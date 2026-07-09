@@ -324,4 +324,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settingsQrDialogDone => 'Kész';
+
+  @override
+  String get settingsResetApp => 'App alaphelyzetbe állítása';
+
+  @override
+  String get settingsResetConfirmTitle => 'Biztos vagy benne?';
+
+  @override
+  String get settingsResetConfirmDesc =>
+      'Ez minden adatot töröl és újraindítja a beállítási varázslót.';
+
+  @override
+  String get yesImSure => 'Igen, biztos';
 }

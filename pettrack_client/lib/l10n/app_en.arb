@@ -185,5 +185,8 @@
   "setupMonitorDesc": "Open the Monitor app on the other phone and scan this QR code to connect!",
   "settingsShowQrBtn": "Show QR Code",
   "settingsQrDialogDesc": "Scan with the old phone:",
-  "settingsQrDialogDone": "Done"
+  "settingsQrDialogDone": "Done",
+  "settingsResetApp": "Reset App & Restart Setup",
+  "settingsResetConfirmTitle": "Are you sure?",
+  "settingsResetConfirmDesc": "This will delete all saved data and restart the setup wizard."
 }

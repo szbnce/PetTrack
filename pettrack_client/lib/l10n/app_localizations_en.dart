@@ -324,4 +324,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsQrDialogDone => 'Done';
+
+  @override
+  String get settingsResetApp => 'Reset App & Restart Setup';
+
+  @override
+  String get settingsResetConfirmTitle => 'Are you sure?';
+
+  @override
+  String get settingsResetConfirmDesc =>
+      'This will delete all saved data and restart the setup wizard.';
+
+  @override
+  String get yesImSure => 'Yes, I\'m sure';
 }

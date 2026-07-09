@@ -92,5 +92,8 @@
   "setupMonitorDesc": "Nyisd meg a Monitor appot a régi telefonodon, és olvasd be ezt a QR kódot a csatlakozáshoz!",
   "settingsShowQrBtn": "QR kód megjelenítése",
   "settingsQrDialogDesc": "Olvasd be a régi telefonnal:",
-  "settingsQrDialogDone": "Kész"
+  "settingsQrDialogDone": "Kész",
+  "settingsResetApp": "App alaphelyzetbe állítása",
+  "settingsResetConfirmTitle": "Biztos vagy benne?",
+  "settingsResetConfirmDesc": "Ez minden adatot töröl és újraindítja a beállítási varázslót."
 }
