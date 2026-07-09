@@ -198,6 +198,10 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           final data = jsonDecode(response.body);
           if (data['monitor_online'] == true) {
             timer.cancel();
+
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool('is_setup_completed', true);
+
             if (mounted) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
