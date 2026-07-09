@@ -78,7 +78,7 @@ async def login(req: LoginRequest):
     if req.secret != SECRET_TOKEN:
         raise HTTPException(status_code=401, detail="Invalid secret")
     
-    encoded_jwt = jwt.encode({"auth": "ok", "exp": time.time() + 86400 * 30}, SECRET_TOKEN, algorithm="HS256")
+    encoded_jwt = jwt.encode({"auth": "ok", "exp": time.time() + 86400 * 3650}, SECRET_TOKEN, algorithm="HS256")
     return {"token": encoded_jwt}
 
 @auth_router.post("/api/auth/set_pin")
