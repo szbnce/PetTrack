@@ -32,6 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Uint8List? _latestFrame;
   String? _secretToken;
   Timer? _timer;
+  bool _isServerOnline = true;
   List<dynamic> _activities = [];
   Uint8List? _profilePicBytes;
   String _petType = 'rabbit';
@@ -115,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadSecret() async {
     final prefs = await SharedPreferences.getInstance();
-    _secretToken = prefs.getString('raw_secret') ?? "MYSUPERSECRETTOKEN";
+    _secretToken = prefs.getString('secret_token') ?? "MYSUPERSECRETTOKEN";
   }
 
   Future<void> _fetchFrame() async {
@@ -129,6 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200 && mounted) {
+        setState(() => _isServerOnline = true);
         if (response.headers['content-type']?.contains('application/json') ??
             false) {
           setState(() {
@@ -171,7 +173,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() => _hasCameraError = true);
       }
     } catch (_) {
-      if (mounted) setState(() => _hasCameraError = true);
+      if (mounted) {
+        setState(() {
+          _hasCameraError = true;
+          _isServerOnline = false;
+        });
+      }
     }
   }
 
@@ -480,7 +487,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (_latestFrame != null)
+                    if (!_isServerOnline)
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.cloud_off,
+                              size: 64,
+                              color: Colors.redAccent,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.serverUnreachableTitle,
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              l10n.serverUnreachableDesc,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (_latestFrame != null)
                       Image.memory(
                         _latestFrame!,
                         fit: BoxFit.cover,

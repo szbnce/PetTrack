@@ -680,11 +680,17 @@ abstract class AppLocalizations {
   /// **'This will delete all saved data and restart the setup wizard.'**
   String get settingsResetConfirmDesc;
 
-  /// No description provided for @yesImSure.
+  /// No description provided for @serverUnreachableTitle.
   ///
   /// In en, this message translates to:
-  /// **'Yes, I\'m sure'**
-  String get yesImSure;
+  /// **'Server Unreachable'**
+  String get serverUnreachableTitle;
+
+  /// No description provided for @serverUnreachableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot connect to the PetTrack server.\nPlease check your network or if the server is running.'**
+  String get serverUnreachableDesc;
 }
 
 class _AppLocalizationsDelegate

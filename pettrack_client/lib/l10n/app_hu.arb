@@ -95,5 +95,7 @@
   "settingsQrDialogDone": "Kész",
   "settingsResetApp": "App alaphelyzetbe állítása",
   "settingsResetConfirmTitle": "Biztos vagy benne?",
-  "settingsResetConfirmDesc": "Ez minden adatot töröl és újraindítja a beállítási varázslót."
+  "settingsResetConfirmDesc": "Ez minden adatot töröl és újraindítja a beállítási varázslót.",
+  "serverUnreachableTitle": "Szerver nem elérhető",
+  "serverUnreachableDesc": "Nem sikerült csatlakozni a PetTrack szerverhez.\nKérlek ellenőrizd a hálózatot, hogy fut-e a szerver."
 }

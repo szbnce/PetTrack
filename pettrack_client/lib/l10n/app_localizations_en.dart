@@ -336,5 +336,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This will delete all saved data and restart the setup wizard.';
 
   @override
-  String get yesImSure => 'Yes, I\'m sure';
+  String get serverUnreachableTitle => 'Server Unreachable';
+
+  @override
+  String get serverUnreachableDesc =>
+      'Cannot connect to the PetTrack server.\nPlease check your network or if the server is running.';
 }

@@ -336,5 +336,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez minden adatot töröl és újraindítja a beállítási varázslót.';
 
   @override
-  String get yesImSure => 'Igen, biztos';
+  String get serverUnreachableTitle => 'Szerver nem elérhető';
+
+  @override
+  String get serverUnreachableDesc =>
+      'Nem sikerült csatlakozni a PetTrack szerverhez.\nKérlek ellenőrizd a hálózatot, hogy fut-e a szerver.';
 }

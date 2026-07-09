@@ -188,5 +188,7 @@
   "settingsQrDialogDone": "Done",
   "settingsResetApp": "Reset App & Restart Setup",
   "settingsResetConfirmTitle": "Are you sure?",
-  "settingsResetConfirmDesc": "This will delete all saved data and restart the setup wizard."
+  "settingsResetConfirmDesc": "This will delete all saved data and restart the setup wizard.",
+  "serverUnreachableTitle": "Server Unreachable",
+  "serverUnreachableDesc": "Cannot connect to the PetTrack server.\nPlease check your network or if the server is running."
 }
