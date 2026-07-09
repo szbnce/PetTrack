@@ -7,7 +7,7 @@ import qrcode
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from manager import manager
-from api_routes import router as zones_router, auth_router, monitor_state, active_zones, update_latest_frame
+from api_routes import router as zones_router, auth_router, monitor_state, active_zones, update_latest_frame, SECRET_TOKEN
 from tasks import cleanup_old_images
 from vision import process_and_save_frame
 from database import init_db, get_zones
@@ -47,8 +47,6 @@ async def startup_event():
     print("="*55)
     qr.print_tty()
     print("="*55 + "\n")
-    
-SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
 
 @app.get("/")
 def read_root():

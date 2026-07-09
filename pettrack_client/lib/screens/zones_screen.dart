@@ -38,7 +38,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
 
   Future<void> _loadSecret() async {
     final prefs = await SharedPreferences.getInstance();
-    _secretToken = prefs.getString('secret_token') ?? "MYSUPERSECRETTOKEN";
+    _secretToken = prefs.getString('secret_token');
   }
 
   void _startPolling() {

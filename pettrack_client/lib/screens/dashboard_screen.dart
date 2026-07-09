@@ -116,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadSecret() async {
     final prefs = await SharedPreferences.getInstance();
-    _secretToken = prefs.getString('secret_token') ?? "MYSUPERSECRETTOKEN";
+    _secretToken = prefs.getString('secret_token');
   }
 
   Future<void> _fetchFrame() async {

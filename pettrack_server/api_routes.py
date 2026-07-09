@@ -113,7 +113,7 @@ async def update_pet_profile(pet: PetProfile):
 async def update_monitor_status(update: MonitorUpdate):
     monitor_state["battery_level"] = update.battery_level
     monitor_state["is_charging"] = update.is_charging
-    return{"status:" "ok"}
+    return {"status:" "ok"}
 
 @router.get("/api/activity")
 async def get_activity(limit: int = 50):
