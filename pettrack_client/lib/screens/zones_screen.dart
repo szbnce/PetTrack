@@ -21,7 +21,7 @@ class ZonesScreen extends StatefulWidget {
 
 class _ZonesScreenState extends State<ZonesScreen> {
   Uint8List? _latestFrame;
-  String? _rawSecret;
+  String? _secretToken;
   Timer? _timer;
   List<Offset> _currentPolygon = [];
   bool _isDrawing = false;
@@ -38,7 +38,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
 
   Future<void> _loadSecret() async {
     final prefs = await SharedPreferences.getInstance();
-    _rawSecret = prefs.getString('raw_secret') ?? "MYSUPERSECRETTOKEN";
+    _secretToken = prefs.getString('secret_token') ?? "MYSUPERSECRETTOKEN";
   }
 
   void _startPolling() {
@@ -77,7 +77,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
   }
 
   Future<void> _fetchFrame() async {
-    if (_rawSecret == null) return;
+    if (_secretToken == null) return;
     try {
       final response = await http
           .get(
@@ -88,7 +88,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
 
       if (response.statusCode == 200 && mounted) {
         try {
-          final keyBytes = sha256.convert(utf8.encode(_rawSecret!)).bytes;
+          final keyBytes = sha256.convert(utf8.encode(_secretToken!)).bytes;
           final key = enc.Key.fromBase64(base64Url.encode(keyBytes));
           final encrypter = enc.Encrypter(enc.Fernet(key));
 

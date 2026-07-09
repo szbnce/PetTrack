@@ -559,6 +559,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile upload error: {e}'**
   String profileUploadError(String e);
+
+  /// No description provided for @setupWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to PetTrack!'**
+  String get setupWelcomeTitle;
+
+  /// No description provided for @setupWelcomeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The best way to keep track of your pet.\n\nFirst, let\'s connect to the server.'**
+  String get setupWelcomeDesc;
+
+  /// No description provided for @setupScanBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Read QR Code'**
+  String get setupScanBtn;
+
+  /// No description provided for @setupSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Success!'**
+  String get setupSuccessTitle;
+
+  /// No description provided for @setupSuccessDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection is encrypted.\nNow let\'s register your pet.'**
+  String get setupSuccessDesc;
+
+  /// No description provided for @setupNextBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Step'**
+  String get setupNextBtn;
+
+  /// No description provided for @setupPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup a Web PIN'**
+  String get setupPinTitle;
+
+  /// No description provided for @setupPinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a 4-digit PIN to securely login from your browser.'**
+  String get setupPinDesc;
+
+  /// No description provided for @setupFinishBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish and Start'**
+  String get setupFinishBtn;
+
+  /// No description provided for @setupErrConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to connect to the server! Check the network.'**
+  String get setupErrConnect;
+
+  /// No description provided for @setupErrSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save profile.'**
+  String get setupErrSave;
+
+  /// No description provided for @setupErrEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name and a 4-digit PIN!'**
+  String get setupErrEmpty;
+
+  /// No description provided for @setupMonitorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitor Setup'**
+  String get setupMonitorTitle;
+
+  /// No description provided for @setupMonitorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the Monitor app on the other phone and scan this QR code to connect!'**
+  String get setupMonitorDesc;
+
+  /// No description provided for @settingsShowQrBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Show QR Code'**
+  String get settingsShowQrBtn;
+
+  /// No description provided for @settingsQrDialogDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan with the old phone:'**
+  String get settingsQrDialogDesc;
+
+  /// No description provided for @settingsQrDialogDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get settingsQrDialogDone;
 }
 
 class _AppLocalizationsDelegate

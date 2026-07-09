@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'theme/app_theme.dart';
 import 'theme/colors.dart';
 import 'l10n/app_localizations.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 late List<CameraDescription> _cameras;
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
@@ -107,7 +108,6 @@ class PetTrackApp extends StatelessWidget {
   }
 }
 
-// SetupScreen
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
 
@@ -116,54 +116,42 @@ class SetupScreen extends StatefulWidget {
 }
 
 class _SetupScreenState extends State<SetupScreen> {
-  final TextEditingController _ipController = TextEditingController();
-  final TextEditingController _tokenController = TextEditingController();
-  final TextEditingController _clientIdController = TextEditingController();
-  String _selectedLanguage = 'en';
+  bool _isProcessing = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadSavedIp();
-  }
+  Future<void> _handleScan(String rawData) async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
 
-  Future<void> _loadSavedIp() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _ipController.text = prefs.getString('server_ip') ?? '127.0.0.1:8000';
-      _tokenController.text =
-          prefs.getString('server_token') ?? 'MYSUPERSECRETTOKEN';
-      _clientIdController.text =
-          prefs.getString('client_id') ?? 'unnamed_monitor';
-      _selectedLanguage = prefs.getString('language_code') ?? 'en';
-    });
-  }
+    try {
+      final data = jsonDecode(rawData);
+      if (data['ip'] != null && data['secret'] != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('server_ip', data['ip']);
+        await prefs.setString('server_token', data['secret']);
 
-  Future<void> _saveAndStart() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('server_ip', _ipController.text);
-    await prefs.setString('server_token', _tokenController.text);
-    await prefs.setString('client_id', _clientIdController.text);
-    await prefs.setString('language_code', _selectedLanguage);
-    localeNotifier.value = Locale(_selectedLanguage);
+        String clientId = prefs.getString('client_id') ?? '';
+        if (clientId.isEmpty) {
+          clientId =
+              'monitor_${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
+          await prefs.setString('client_id', clientId);
+        }
 
-    if (!mounted) return;
-
-    if (Navigator.canPop(context)) {
-      // Ha a Monitor képernyőről jöttünk, csak visszalépünk
-      Navigator.pop(context, true);
-    } else {
-      // Ha frissen indult az app, betöltjük a Monitort
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MonitorScreen(
-            serverIp: _ipController.text,
-            token: _tokenController.text,
-            clientId: _clientIdController.text,
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MonitorScreen(
+              serverIp: data['ip'],
+              token: data['secret'],
+              clientId: clientId,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        setState(() => _isProcessing = false);
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
     }
   }
 
@@ -173,102 +161,48 @@ class _SetupScreenState extends State<SetupScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.setupTitle)),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  size: 60,
-                  color: AppColors.warning,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  l10n.setupNextStep,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.warning,
+      body: Stack(
+        children: [
+          MobileScanner(
+            onDetect: (capture) {
+              final List<Barcode> barcodes = capture.barcodes;
+              for (final barcode in barcodes) {
+                if (barcode.rawValue != null) {
+                  _handleScan(barcode.rawValue!);
+                  break;
+                }
+              }
+            },
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    l10n.setupScanQrTitle,
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  l10n.setupAutostartWarning,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 40),
-                TextField(
-                  controller: _ipController,
-                  decoration: InputDecoration(
-                    labelText: l10n.setupServerIp,
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.computer),
-                  ),
-                  keyboardType: TextInputType.url,
-                ),
-                const SizedBox(height: 15),
-                TextField(
-                  controller: _clientIdController,
-                  decoration: InputDecoration(
-                    labelText: l10n.setupDeviceName,
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.badge),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                TextField(
-                  controller: _tokenController,
-                  decoration: InputDecoration(
-                    labelText: l10n.setupSecurityToken,
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.security),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 15),
-                DropdownButtonFormField<String>(
-                  value: _selectedLanguage,
-                  decoration: InputDecoration(
-                    labelText: l10n.languageTitle,
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.language),
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: 'en',
-                      child: Text(l10n.languageEnglish),
-                    ),
-                    DropdownMenuItem(
-                      value: 'hu',
-                      child: Text(l10n.languageHungarian),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedLanguage = val);
-                  },
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: _saveAndStart,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                  ),
-                  icon: const Icon(Icons.camera_alt),
-                  label: Text(
-                    l10n.setupSaveAndStart,
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          if (_isProcessing)
+            Container(
+              color: Colors.black54,
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
       ),
     );
   }

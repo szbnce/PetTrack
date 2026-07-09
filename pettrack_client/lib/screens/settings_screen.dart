@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:pettrack_client/l10n/app_localizations.dart';
 import '../theme/colors.dart';
 import '../main.dart';
@@ -75,11 +76,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final ip = prefs.getString('server_ip') ?? '';
-    final token = prefs.getString('api_token') ?? '';
+    final token = prefs.getString('jwt_token') ?? '';
 
     setState(() {
       _ipController.text = ip;
-      _tokenController.text = prefs.getString('raw_secret') ?? '';
+      _tokenController.text = prefs.getString('secret_token') ?? '';
       _languageCode = prefs.getString('language_code') ?? 'hu';
       _themeModeString = prefs.getString('theme_mode') ?? 'system';
       _alertsZoneEnabled = prefs.getBool('alerts_zone_enabled') ?? true;
@@ -100,7 +101,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final petData = jsonDecode(response.body);
           setState(() {
             _petNameController.text = petData['name'] ?? 'Juan';
-            _petType = petData['type'] ?? 'rabbit';
+            _petType = (petData['type'] ?? 'rabbit')
+                .toString()
+                .replaceFirst('petType', '')
+                .toLowerCase();
             _profilePicBase64 = petData['profile_pic'];
           });
         }
@@ -139,38 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     setState(() => _isLoading = true);
 
-    String jwtToken = prefs.getString('api_token') ?? '';
-    try {
-      final authRes = await http
-          .post(
-            Uri.parse('http://$ip/api/auth/login'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({"secret": secret}),
-          )
-          .timeout(const Duration(seconds: 3));
-      if (authRes.statusCode == 200) {
-        final data = jsonDecode(authRes.body);
-        jwtToken = data['token'];
-      } else {
-        if (mounted) {
-          final l10n = AppLocalizations.of(context)!;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.invalidSecretToken)));
-          setState(() => _isLoading = false);
-        }
-        return;
-      }
-    } catch (e) {
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.serverUnreachable)));
-        setState(() => _isLoading = false);
-      }
-      return;
-    }
+    String jwtToken = prefs.getString('jwt_token') ?? '';
 
     try {
       await http
@@ -195,8 +168,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     await prefs.setString('server_ip', ip);
-    await prefs.setString('api_token', jwtToken);
-    await prefs.setString('raw_secret', secret);
+    await prefs.setString('jwt_token', jwtToken);
+    await prefs.setString('secret_token', secret);
     await prefs.setString('pet_name', _petNameController.text.trim());
     await prefs.setString('language_code', _languageCode);
     await prefs.setString('pet_type', _petType);
@@ -367,13 +340,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.serverIp,
+                      l10n.setupMonitorTitle,
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: _ipController,
-                      decoration: InputDecoration(hintText: l10n.serverIpHint),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text(l10n.setupMonitorTitle),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(l10n.settingsQrDialogDesc),
+                                  const SizedBox(height: 20),
+                                  QrImageView(
+                                    data: jsonEncode({
+                                      "ip": "${_ipController.text}:8000",
+                                      "secret": _tokenController.text,
+                                    }),
+                                    version: QrVersions.auto,
+                                    size: 200.0,
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(l10n.settingsQrDialogDone),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.qr_code),
+                        label: Text(l10n.settingsShowQrBtn),
+                      ),
                     ),
                     const SizedBox(height: 20),
 
@@ -461,19 +466,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      l10n.secretToken,
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _tokenController,
-                      decoration: const InputDecoration(
-                        hintText: '••••••••••••',
-                      ),
-                      obscureText: true,
                     ),
                     const SizedBox(height: 20),
 

@@ -11,8 +11,18 @@ import jwt
 from cryptography.fernet import Fernet
 import base64
 import hashlib
+import secrets
+from dotenv import load_dotenv, set_key
+from pydantic import BaseModel
 
-SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
+load_dotenv()
+
+SECRET_TOKEN = os.getenv("PETTRACK_SECRET")
+if not SECRET_TOKEN:
+    print("No secret found! Generating a new ultra-secure 64-char token...")
+    new_secret = secrets.token_urlsafe(48)
+    set_key(".env", "PETTRACK_SECRET", new_secret)
+    SECRET_TOKEN = new_secret
 
 def get_fernet_key(secret: str) -> bytes:
     digest = hashlib.sha256(secret.encode()).digest()
@@ -49,6 +59,10 @@ def update_latest_frame(data: bytes):
     latest_frame_info["data"] = data
     latest_frame_info["timestamp"] = time.time()
 
+class PinRequest(BaseModel):
+    pin: str
+
+
 @router.get("/api/status")
 async def get_status():
     return {
@@ -66,6 +80,24 @@ async def login(req: LoginRequest):
     
     encoded_jwt = jwt.encode({"auth": "ok", "exp": time.time() + 86400 * 30}, SECRET_TOKEN, algorithm="HS256")
     return {"token": encoded_jwt}
+
+@auth_router.post("/api/auth/set_pin")
+async def set_pin(req: PinRequest, x_api_token: str = Header(None)):
+    try:
+        jwt.decode(x_api_token, SECRET_TOKEN, algorithms=["HS256"])
+    except:
+        raise HTTPException(status_code=401, detail="Unauthorized to set PIN")
+
+    set_key(".env", "PETTRACK_WEB_PIN", req.pin)
+    os.environ["PETTRACK_WEB_PIN"] = req.pin
+    return {"status": "success"}
+    
+@auth_router.post("/api/auth/login_pin")
+async def login_pin(req: PinRequest):
+    if req.pin != os.getenv("PETTRACK_WEB_PIN"):
+        raise HTTPException(status_code=401, detail="Invalid PIN")
+    return {"secret": SECRET_TOKEN}
+
 
 @router.get("/api/pet")
 async def get_pet_profile():

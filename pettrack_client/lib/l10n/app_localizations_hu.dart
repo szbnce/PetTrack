@@ -268,4 +268,60 @@ class AppLocalizationsHu extends AppLocalizations {
   String profileUploadError(String e) {
     return 'Profil feltöltés hiba: $e';
   }
+
+  @override
+  String get setupWelcomeTitle => 'Üdvözöl a PetTrack!';
+
+  @override
+  String get setupWelcomeDesc =>
+      'A legbiztonságosabb kisállatfigyelő\n\nElső lépésként olvasd be a szerver QR kódját!';
+
+  @override
+  String get setupScanBtn => 'QR kód beolvasása';
+
+  @override
+  String get setupSuccessTitle => 'Sikeres csatlakozás!';
+
+  @override
+  String get setupSuccessDesc =>
+      'A kapcsolat titkosítva.\nMost adjuk meg a kedvenced adatait.';
+
+  @override
+  String get setupNextBtn => 'Tovább';
+
+  @override
+  String get setupPinTitle => 'Webes pin beállítása';
+
+  @override
+  String get setupPinDesc =>
+      'Hozz létre egy 4 számjegyű PIN kódot a böngészős belépéshez.';
+
+  @override
+  String get setupFinishBtn => 'Befejezés és indítás';
+
+  @override
+  String get setupErrConnect =>
+      'Hiba a szerverhez csatlakozáskor! Ellenőrizd a hálózatot.';
+
+  @override
+  String get setupErrSave => 'Hiba a profil mentésekor!';
+
+  @override
+  String get setupErrEmpty => 'Adj meg egy nevet és egy 4 számjegyű PIN kódot!';
+
+  @override
+  String get setupMonitorTitle => 'Kamera beállítása';
+
+  @override
+  String get setupMonitorDesc =>
+      'Nyisd meg a Monitor appot a régi telefonodon, és olvasd be ezt a QR kódot a csatlakozáshoz!';
+
+  @override
+  String get settingsShowQrBtn => 'QR kód megjelenítése';
+
+  @override
+  String get settingsQrDialogDesc => 'Olvasd be a régi telefonnal:';
+
+  @override
+  String get settingsQrDialogDone => 'Kész';
 }

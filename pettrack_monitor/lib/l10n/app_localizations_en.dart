@@ -88,4 +88,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageHungarian => 'Magyar';
+
+  @override
+  String get setupScanQrTitle => 'Scan the QR code from the PetTrack App';
 }

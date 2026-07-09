@@ -247,6 +247,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Magyar'**
   String get languageHungarian;
+
+  /// No description provided for @setupScanQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR code from the PetTrack App'**
+  String get setupScanQrTitle;
 }
 
 class _AppLocalizationsDelegate

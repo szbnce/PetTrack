@@ -30,7 +30,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   Uint8List? _latestFrame;
-  String? _rawSecret;
+  String? _secretToken;
   Timer? _timer;
   List<dynamic> _activities = [];
   Uint8List? _profilePicBytes;
@@ -115,11 +115,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadSecret() async {
     final prefs = await SharedPreferences.getInstance();
-    _rawSecret = prefs.getString('raw_secret') ?? "MYSUPERSECRETTOKEN";
+    _secretToken = prefs.getString('raw_secret') ?? "MYSUPERSECRETTOKEN";
   }
 
   Future<void> _fetchFrame() async {
-    if (_rawSecret == null) return;
+    if (_secretToken == null) return;
     try {
       final response = await http
           .get(
@@ -137,7 +137,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           });
         } else {
           try {
-            final keyBytes = sha256.convert(utf8.encode(_rawSecret!)).bytes;
+            final keyBytes = sha256.convert(utf8.encode(_secretToken!)).bytes;
             final key = enc.Key.fromBase64(base64Url.encode(keyBytes));
             final encrypter = enc.Encrypter(enc.Fernet(key));
 

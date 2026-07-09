@@ -7,7 +7,7 @@ import 'package:pettrack_client/l10n/app_localizations.dart';
 import 'theme/app_theme.dart';
 import 'theme/colors.dart';
 import 'screens/main_navigation.dart';
-import 'screens/settings_screen.dart'; // We use settings screen as setup initially if not logged in
+import 'screens/setup_wizard_screen.dart'; // We use settings screen as setup initially if not logged in
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -130,7 +130,7 @@ class _BootScreenState extends State<BootScreen> {
   Future<void> _checkSetup() async {
     final prefs = await SharedPreferences.getInstance();
     final ip = prefs.getString('server_ip');
-    final token = prefs.getString('api_token');
+    final token = prefs.getString('jwt_token');
     final petName = prefs.getString('pet_name') ?? 'Bodri';
 
     await Future.delayed(const Duration(milliseconds: 800));
@@ -187,6 +187,6 @@ class SetupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SettingsScreen(isSetup: true);
+    return const SetupWizardScreen();
   }
 }

@@ -75,5 +75,22 @@
   "serverUnreachable": "Szerver nem elérhető!",
   "decodingErrorZones": "Dekódolási hiba zónáknál: {e}",
   "decodingError": "Dekódolási hiba: {e}",
-  "profileUploadError": "Profil feltöltés hiba: {e}"
+  "profileUploadError": "Profil feltöltés hiba: {e}",
+  "setupWelcomeTitle": "Üdvözöl a PetTrack!",
+  "setupWelcomeDesc": "A legbiztonságosabb kisállatfigyelő\n\nElső lépésként olvasd be a szerver QR kódját!",
+  "setupScanBtn": "QR kód beolvasása",
+  "setupSuccessTitle": "Sikeres csatlakozás!",
+  "setupSuccessDesc": "A kapcsolat titkosítva.\nMost adjuk meg a kedvenced adatait.",
+  "setupNextBtn": "Tovább",
+  "setupPinTitle": "Webes pin beállítása",
+  "setupPinDesc": "Hozz létre egy 4 számjegyű PIN kódot a böngészős belépéshez.",
+  "setupFinishBtn": "Befejezés és indítás",
+  "setupErrConnect": "Hiba a szerverhez csatlakozáskor! Ellenőrizd a hálózatot.",
+  "setupErrSave": "Hiba a profil mentésekor!",
+  "setupErrEmpty": "Adj meg egy nevet és egy 4 számjegyű PIN kódot!",
+  "setupMonitorTitle": "Kamera beállítása",
+  "setupMonitorDesc": "Nyisd meg a Monitor appot a régi telefonodon, és olvasd be ezt a QR kódot a csatlakozáshoz!",
+  "settingsShowQrBtn": "QR kód megjelenítése",
+  "settingsQrDialogDesc": "Olvasd be a régi telefonnal:",
+  "settingsQrDialogDone": "Kész"
 }

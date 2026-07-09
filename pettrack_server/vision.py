@@ -15,9 +15,6 @@ async def process_and_save_frame(image_bytes: bytes):
     timestamp = int(time.time())
     file_path = f"captured_images/frame_{timestamp}.png"
 
-    with open(file_path, "wb") as f:
-        f.write(image_bytes)
-
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -39,6 +36,10 @@ async def process_and_save_frame(image_bytes: bytes):
 
         if is_inside >=0:
             current_zones.add(zone_name)
+
+    if len(current_zones) > 0:
+        with open(file_path, "wb") as f:
+            f.write(image_bytes)
 
     entered = current_zones - _last_zones
     for zone in entered:

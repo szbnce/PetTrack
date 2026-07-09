@@ -168,5 +168,22 @@
       "e": { "type": "String" 
       } 
     }
-  }
+  },
+  "setupWelcomeTitle": "Welcome to PetTrack!",
+  "setupWelcomeDesc": "The best way to keep track of your pet.\n\nFirst, let's connect to the server.",
+  "setupScanBtn": "Read QR Code",
+  "setupSuccessTitle": "Success!",
+  "setupSuccessDesc": "The connection is encrypted.\nNow let's register your pet.",
+  "setupNextBtn": "Next Step",
+  "setupPinTitle": "Setup a Web PIN",
+  "setupPinDesc": "Create a 4-digit PIN to securely login from your browser.",
+  "setupFinishBtn": "Finish and Start",
+  "setupErrConnect": "Failed to connect to the server! Check the network.",
+  "setupErrSave": "Failed to save profile.",
+  "setupErrEmpty": "Please enter a name and a 4-digit PIN!",
+  "setupMonitorTitle": "Monitor Setup",
+  "setupMonitorDesc": "Open the Monitor app on the other phone and scan this QR code to connect!",
+  "settingsShowQrBtn": "Show QR Code",
+  "settingsQrDialogDesc": "Scan with the old phone:",
+  "settingsQrDialogDone": "Done"
 }

@@ -23,5 +23,6 @@
     "errorConnectionFailed": "Sikertelen csatlakozás a szerverhez! Ellenőrizd az IP-t és a Tokent.\nHiba: {error}",
     "languageTitle": "Nyelv",
     "languageEnglish": "English",
-    "languageHungarian": "Magyar"
+    "languageHungarian": "Magyar",
+    "setupScanQrTitle": "Olvasd be a QR kódot a PetTrack appból"
 }

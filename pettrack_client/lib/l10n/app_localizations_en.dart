@@ -268,4 +268,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String profileUploadError(String e) {
     return 'Profile upload error: $e';
   }
+
+  @override
+  String get setupWelcomeTitle => 'Welcome to PetTrack!';
+
+  @override
+  String get setupWelcomeDesc =>
+      'The best way to keep track of your pet.\n\nFirst, let\'s connect to the server.';
+
+  @override
+  String get setupScanBtn => 'Read QR Code';
+
+  @override
+  String get setupSuccessTitle => 'Success!';
+
+  @override
+  String get setupSuccessDesc =>
+      'The connection is encrypted.\nNow let\'s register your pet.';
+
+  @override
+  String get setupNextBtn => 'Next Step';
+
+  @override
+  String get setupPinTitle => 'Setup a Web PIN';
+
+  @override
+  String get setupPinDesc =>
+      'Create a 4-digit PIN to securely login from your browser.';
+
+  @override
+  String get setupFinishBtn => 'Finish and Start';
+
+  @override
+  String get setupErrConnect =>
+      'Failed to connect to the server! Check the network.';
+
+  @override
+  String get setupErrSave => 'Failed to save profile.';
+
+  @override
+  String get setupErrEmpty => 'Please enter a name and a 4-digit PIN!';
+
+  @override
+  String get setupMonitorTitle => 'Monitor Setup';
+
+  @override
+  String get setupMonitorDesc =>
+      'Open the Monitor app on the other phone and scan this QR code to connect!';
+
+  @override
+  String get settingsShowQrBtn => 'Show QR Code';
+
+  @override
+  String get settingsQrDialogDesc => 'Scan with the old phone:';
+
+  @override
+  String get settingsQrDialogDone => 'Done';
 }

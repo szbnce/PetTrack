@@ -2,6 +2,8 @@ import argparse
 import uvicorn
 import os
 import asyncio
+import socket
+import qrcode
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from manager import manager
@@ -26,6 +28,26 @@ async def startup_event():
         
     asyncio.create_task(cleanup_old_images())
 
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+    except:
+        ip = "127.0.0.1"
+    
+    secret = os.getenv("PETTRACK_SECRET")
+    qr_data = f'{{"ip": "{ip}:8000", "secret": "{secret}"}}'
+    qr_img = qrcode.make(qr_data)
+    qr = qrcode.QRCode()
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    print("\n" + "="*55)
+    print("SCAN THIS QR CODE WITH PETTRACK CLIENT!")
+    print("="*55)
+    qr.print_tty()
+    print("="*55 + "\n")
+    
 SECRET_TOKEN = os.getenv("PETTRACK_SECRET", "MYSUPERSECRETTOKEN")
 
 @app.get("/")
