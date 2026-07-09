@@ -91,4 +91,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupScanQrTitle => 'Scan the QR code from the PetTrack App';
+
+  @override
+  String get lightMode => '☀️ Light Mode';
+
+  @override
+  String get darkMode => '🌙 Dark Mode';
 }

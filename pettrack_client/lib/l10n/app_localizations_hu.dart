@@ -341,4 +341,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get serverUnreachableDesc =>
       'Nem sikerült csatlakozni a PetTrack szerverhez.\nKérlek ellenőrizd a hálózatot, hogy fut-e a szerver.';
+
+  @override
+  String get profileAndSystem => 'Profil & Rendszer';
+
+  @override
+  String get monitorAndConnection => 'Monitor & Kapcsolat';
+
+  @override
+  String get offlineStatus => 'OFFLINE!';
+
+  @override
+  String get liveStatus => 'Élő';
+
+  @override
+  String get searchingStatus => 'Keresés...';
 }

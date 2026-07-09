@@ -341,4 +341,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get serverUnreachableDesc =>
       'Cannot connect to the PetTrack server.\nPlease check your network or if the server is running.';
+
+  @override
+  String get profileAndSystem => 'Profile & System';
+
+  @override
+  String get monitorAndConnection => 'Monitor & Connection';
+
+  @override
+  String get offlineStatus => 'OFFLINE!';
+
+  @override
+  String get liveStatus => 'Live';
+
+  @override
+  String get searchingStatus => 'Searching...';
 }

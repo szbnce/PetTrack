@@ -691,6 +691,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cannot connect to the PetTrack server.\nPlease check your network or if the server is running.'**
   String get serverUnreachableDesc;
+
+  /// No description provided for @profileAndSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile & System'**
+  String get profileAndSystem;
+
+  /// No description provided for @monitorAndConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitor & Connection'**
+  String get monitorAndConnection;
+
+  /// No description provided for @offlineStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'OFFLINE!'**
+  String get offlineStatus;
+
+  /// No description provided for @liveStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get liveStatus;
+
+  /// No description provided for @searchingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching...'**
+  String get searchingStatus;
 }
 
 class _AppLocalizationsDelegate

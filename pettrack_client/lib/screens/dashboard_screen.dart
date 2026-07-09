@@ -36,7 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> _activities = [];
   Uint8List? _profilePicBytes;
   String _petType = 'rabbit';
-  String _monitorId = "Searching...";
+  String? _monitorId;
   int _batteryLevel = 100;
   bool _isCharging = false;
   bool _alertsZoneEnabled = true;
@@ -274,7 +274,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   ) {
     if (_hasCameraError || _latestFrame == null) {
       return (
-        text: "OFFLINE!",
+        text: l10n.offlineStatus,
         textColor: Colors.red,
         bgColor: const Color(0xFFFFE5E5),
       );
@@ -285,7 +285,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final sec = diff.inSeconds;
       if (sec <= 10) {
         return (
-          text: "Live",
+          text: l10n.liveStatus,
           textColor: Colors.green[800]!,
           bgColor: Colors.green[100]!,
         );
@@ -305,7 +305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     return (
-      text: "Live",
+      text: l10n.liveStatus,
       textColor: Colors.green[800]!,
       bgColor: Colors.green[100]!,
     );
@@ -566,7 +566,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             "$_batteryLevel%",
                           ),
                           const SizedBox(width: 8),
-                          _buildChip(Icons.wifi, _monitorId),
+                          _buildChip(
+                            Icons.wifi,
+                            _monitorId ?? l10n.searchingStatus,
+                          ),
                         ],
                       ),
                     ),

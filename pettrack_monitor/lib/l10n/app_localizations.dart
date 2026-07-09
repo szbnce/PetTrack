@@ -253,6 +253,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scan the QR code from the PetTrack App'**
   String get setupScanQrTitle;
+
+  /// No description provided for @lightMode.
+  ///
+  /// In en, this message translates to:
+  /// **'☀️ Light Mode'**
+  String get lightMode;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'🌙 Dark Mode'**
+  String get darkMode;
 }
 
 class _AppLocalizationsDelegate

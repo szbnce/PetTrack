@@ -97,5 +97,10 @@
   "settingsResetConfirmTitle": "Biztos vagy benne?",
   "settingsResetConfirmDesc": "Ez minden adatot töröl és újraindítja a beállítási varázslót.",
   "serverUnreachableTitle": "Szerver nem elérhető",
-  "serverUnreachableDesc": "Nem sikerült csatlakozni a PetTrack szerverhez.\nKérlek ellenőrizd a hálózatot, hogy fut-e a szerver."
+  "serverUnreachableDesc": "Nem sikerült csatlakozni a PetTrack szerverhez.\nKérlek ellenőrizd a hálózatot, hogy fut-e a szerver.",
+  "profileAndSystem": "Profil & Rendszer",
+  "monitorAndConnection": "Monitor & Kapcsolat",
+  "offlineStatus": "OFFLINE!",
+  "liveStatus": "Élő",
+  "searchingStatus": "Keresés..."
 }

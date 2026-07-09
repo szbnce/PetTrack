@@ -497,8 +497,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
                   value: 'theme',
                   child: Text(
                     themeNotifier.value == ThemeMode.dark
-                        ? '☀️ Light Mode'
-                        : '🌙 Dark Mode',
+                        ? l10n.lightMode,
+                        : l10n.darkMode,
                   ),
                 ),
                 PopupMenuItem(

@@ -91,4 +91,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setupScanQrTitle => 'Olvasd be a QR kódot a PetTrack appból';
+
+  @override
+  String get lightMode => '☀️ Világos mód';
+
+  @override
+  String get darkMode => '🌙 Sötét mód';
 }

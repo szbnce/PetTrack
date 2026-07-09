@@ -38,5 +38,7 @@
     "languageTitle": "Language",
     "languageEnglish": "English",
     "languageHungarian": "Magyar",
-    "setupScanQrTitle": "Scan the QR code from the PetTrack App"
+    "setupScanQrTitle": "Scan the QR code from the PetTrack App",
+    "lightMode": "☀️ Light Mode",
+    "darkMode": "🌙 Dark Mode"
 }

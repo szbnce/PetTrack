@@ -24,5 +24,7 @@
     "languageTitle": "Nyelv",
     "languageEnglish": "English",
     "languageHungarian": "Magyar",
-    "setupScanQrTitle": "Olvasd be a QR kódot a PetTrack appból"
+    "setupScanQrTitle": "Olvasd be a QR kódot a PetTrack appból",
+    "lightMode": "☀️ Világos mód",
+    "darkMode": "🌙 Sötét mód"
 }

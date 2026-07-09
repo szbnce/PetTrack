@@ -190,5 +190,10 @@
   "settingsResetConfirmTitle": "Are you sure?",
   "settingsResetConfirmDesc": "This will delete all saved data and restart the setup wizard.",
   "serverUnreachableTitle": "Server Unreachable",
-  "serverUnreachableDesc": "Cannot connect to the PetTrack server.\nPlease check your network or if the server is running."
+  "serverUnreachableDesc": "Cannot connect to the PetTrack server.\nPlease check your network or if the server is running.",
+  "profileAndSystem": "Profile & System",
+  "monitorAndConnection": "Monitor & Connection",
+  "offlineStatus": "OFFLINE!",
+  "liveStatus": "Live",
+  "searchingStatus": "Searching..."
 }

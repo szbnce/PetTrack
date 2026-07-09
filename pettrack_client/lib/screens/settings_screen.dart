@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 .toLowerCase();
             _profilePicBase64 = petData['profile_pic'];
           });
-          
+
           if (_profilePicBase64 != null) {
             await prefs.setString('profile_pic', _profilePicBase64!);
           } else {
@@ -195,7 +195,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await prefs.remove('profile_pic');
     }
 
-
     if (mounted) {
       setState(() => _isLoading = false);
       PetTrackClientApp.setLocale(context, Locale(_languageCode));
@@ -241,7 +240,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-
   Widget _buildCard(String title, List<Widget> children) {
     return Container(
       width: double.infinity,
@@ -264,9 +262,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(height: 20),
           ...children,
@@ -362,257 +360,307 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 16),
               Text(
                 l10n.uploadProfilePicture,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppColors.primary),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(color: AppColors.primary),
               ),
               const SizedBox(height: 40),
 
               // 1. Profil Beállítások Kártya
-              _buildCard(
-                "Profil & Rendszer",
-                [
-                  Text(l10n.petName, style: Theme.of(context).textTheme.labelLarge),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _petNameController,
-                    decoration: InputDecoration(hintText: l10n.petNameHint),
+              _buildCard(l10n.profileAndSystem, [
+                Text(
+                  l10n.petName,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _petNameController,
+                  decoration: InputDecoration(hintText: l10n.petNameHint),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  l10n.petTypeTitle,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(height: 20),
-                  Text(l10n.petTypeTitle, style: Theme.of(context).textTheme.labelLarge),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _petType,
-                        isExpanded: true,
-                        items: ['dog', 'cat', 'rabbit', 'guineapig', 'bird', 'other']
-                            .map((type) => DropdownMenuItem(value: type, child: Text(_getLocalizedPetType(context, type))))
-                            .toList(),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) setState(() => _petType = newValue);
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(l10n.language, style: Theme.of(context).textTheme.labelLarge),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(8)),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _languageCode,
-                                  isExpanded: true,
-                                  items: const [
-                                    DropdownMenuItem(value: 'en', child: Text('English')),
-                                    DropdownMenuItem(value: 'hu', child: Text('Magyar')),
-                                  ],
-                                  onChanged: (String? newValue) async {
-                                    if (newValue != null && newValue != _languageCode) {
-                                      setState(() => _languageCode = newValue);
-                                      final prefs = await SharedPreferences.getInstance();
-                                      await prefs.setString('language_code', newValue);
-                                      if (mounted) PetTrackClientApp.setLocale(context, Locale(newValue));
-                                    }
-                                  },
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _petType,
+                      isExpanded: true,
+                      items:
+                          ['dog', 'cat', 'rabbit', 'guineapig', 'bird', 'other']
+                              .map(
+                                (type) => DropdownMenuItem(
+                                  value: type,
+                                  child: Text(
+                                    _getLocalizedPetType(context, type),
+                                  ),
                                 ),
+                              )
+                              .toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null)
+                          setState(() => _petType = newValue);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.language,
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _languageCode,
+                                isExpanded: true,
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'en',
+                                    child: Text('English'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'hu',
+                                    child: Text('Magyar'),
+                                  ),
+                                ],
+                                onChanged: (String? newValue) async {
+                                  if (newValue != null &&
+                                      newValue != _languageCode) {
+                                    setState(() => _languageCode = newValue);
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    await prefs.setString(
+                                      'language_code',
+                                      newValue,
+                                    );
+                                    if (mounted)
+                                      PetTrackClientApp.setLocale(
+                                        context,
+                                        Locale(newValue),
+                                      );
+                                  }
+                                },
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(l10n.appearance, style: Theme.of(context).textTheme.labelLarge),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(8)),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _themeModeString,
-                                  isExpanded: true,
-                                  items: [
-                                    DropdownMenuItem(value: 'system', child: Text(l10n.themeSystem)),
-                                    DropdownMenuItem(value: 'light', child: Text(l10n.themeLight)),
-                                    DropdownMenuItem(value: 'dark', child: Text(l10n.themeDark)),
-                                  ],
-                                  onChanged: (String? newValue) {
-                                    if (newValue != null) setState(() => _themeModeString = newValue);
-                                  },
-                                ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.appearance,
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _themeModeString,
+                                isExpanded: true,
+                                items: [
+                                  DropdownMenuItem(
+                                    value: 'system',
+                                    child: Text(l10n.themeSystem),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'light',
+                                    child: Text(l10n.themeLight),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'dark',
+                                    child: Text(l10n.themeDark),
+                                  ),
+                                ],
+                                onChanged: (String? newValue) {
+                                  if (newValue != null)
+                                    setState(() => _themeModeString = newValue);
+                                },
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
-
-              // 2. Értesítések Kártya
-              _buildCard(
-                l10n.alertsTitle,
-                [
-                  SwitchListTile(
-                    title: Text(l10n.alertsZone),
-                    value: _alertsZoneEnabled,
-                    onChanged: (val) => setState(() => _alertsZoneEnabled = val),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  SwitchListTile(
-                    title: Text(l10n.alertsBattery),
-                    value: _alertsBatteryEnabled,
-                    onChanged: (val) => setState(() => _alertsBatteryEnabled = val),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  if (_alertsBatteryEnabled) ...[
-                    const SizedBox(height: 8),
-                    Text(l10n.batteryThreshold(_batteryThreshold.toInt())),
-                    Slider(
-                      value: _batteryThreshold,
-                      min: 5,
-                      max: 50,
-                      divisions: 9,
-                      label: "${_batteryThreshold.toInt()}%",
-                      onChanged: (val) => setState(() => _batteryThreshold = val),
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  Center(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final notifService = NotificationService();
-                        await notifService.requestPermissions();
-                        await notifService.showNotification(
-                          id: 999,
-                          title: l10n.testNotifTitle,
-                          body: l10n.testNotifBody,
-                        );
-                      },
-                      icon: const Icon(Icons.notifications_active),
-                      label: Text(l10n.testNotification),
-                    ),
+                ),
+              ]),
+
+              // 2. Értesítések Kártya
+              _buildCard(l10n.alertsTitle, [
+                SwitchListTile(
+                  title: Text(l10n.alertsZone),
+                  value: _alertsZoneEnabled,
+                  onChanged: (val) => setState(() => _alertsZoneEnabled = val),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                SwitchListTile(
+                  title: Text(l10n.alertsBattery),
+                  value: _alertsBatteryEnabled,
+                  onChanged: (val) =>
+                      setState(() => _alertsBatteryEnabled = val),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                if (_alertsBatteryEnabled) ...[
+                  const SizedBox(height: 8),
+                  Text(l10n.batteryThreshold(_batteryThreshold.toInt())),
+                  Slider(
+                    value: _batteryThreshold,
+                    min: 5,
+                    max: 50,
+                    divisions: 9,
+                    label: "${_batteryThreshold.toInt()}%",
+                    onChanged: (val) => setState(() => _batteryThreshold = val),
                   ),
                 ],
-              ),
+                const SizedBox(height: 16),
+                Center(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final notifService = NotificationService();
+                      await notifService.requestPermissions();
+                      await notifService.showNotification(
+                        id: 999,
+                        title: l10n.testNotifTitle,
+                        body: l10n.testNotifBody,
+                      );
+                    },
+                    icon: const Icon(Icons.notifications_active),
+                    label: Text(l10n.testNotification),
+                  ),
+                ),
+              ]),
 
               // 3. Monitor és Rendszer Kártya
-              _buildCard(
-                "Monitor & Kapcsolat",
-                [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text(l10n.setupMonitorTitle),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(l10n.settingsQrDialogDesc),
-                                const SizedBox(height: 20),
-                                Container(
-                                  width: 216,
-                                  height: 216,
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: QrImageView(
-                                    data: jsonEncode({
-                                      "ip": "${_ipController.text}:8000",
-                                      "secret": _tokenController.text,
-                                    }),
-                                    version: QrVersions.auto,
-                                    size: 200.0,
-                                  ),
+              _buildCard(l10n.monitorAndConnection, [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text(l10n.setupMonitorTitle),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(l10n.settingsQrDialogDesc),
+                              const SizedBox(height: 20),
+                              Container(
+                                width: 216,
+                                height: 216,
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                              ],
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text(l10n.settingsQrDialogDone),
+                                child: QrImageView(
+                                  data: jsonEncode({
+                                    "ip": "${_ipController.text}:8000",
+                                    "secret": _tokenController.text,
+                                  }),
+                                  version: QrVersions.auto,
+                                  size: 200.0,
+                                ),
                               ),
                             ],
                           ),
-                        );
-                      },
-                      icon: const Icon(Icons.qr_code),
-                      label: Text(l10n.settingsShowQrBtn),
-                    ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(l10n.settingsQrDialogDone),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.qr_code),
+                    label: Text(l10n.settingsShowQrBtn),
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (BuildContext ctx) {
-                            return AlertDialog(
-                              title: Text(l10n.settingsResetConfirmTitle),
-                              content: Text(l10n.settingsResetConfirmDesc),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(ctx).pop(false),
-                                  child: Text(l10n.cancel),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(ctx).pop(true),
-                                  child: Text(
-                                    l10n.settingsResetApp,
-                                    style: const TextStyle(color: Colors.redAccent),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          return AlertDialog(
+                            title: Text(l10n.settingsResetConfirmTitle),
+                            content: Text(l10n.settingsResetConfirmDesc),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: Text(l10n.cancel),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                child: Text(
+                                  l10n.settingsResetApp,
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
                                   ),
                                 ),
-                              ],
-                            );
-                          },
-                        );
+                              ),
+                            ],
+                          );
+                        },
+                      );
 
-                        if (confirm == true) {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.clear();
-                          if (mounted) {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (_) => const BootScreen()),
-                              (route) => false,
-                            );
-                          }
+                      if (confirm == true) {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.clear();
+                        if (mounted) {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (_) => const BootScreen(),
+                            ),
+                            (route) => false,
+                          );
                         }
-                      },
-                      icon: const Icon(Icons.restore, color: Colors.redAccent),
-                      label: Text(
-                        l10n.settingsResetApp,
-                        style: const TextStyle(color: Colors.redAccent),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: const BorderSide(color: Colors.redAccent),
-                      ),
+                      }
+                    },
+                    icon: const Icon(Icons.restore, color: Colors.redAccent),
+                    label: Text(
+                      l10n.settingsResetApp,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: Colors.redAccent),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ]),
 
               const SizedBox(height: 16),
               // Mentés Gomb Fixen alul
