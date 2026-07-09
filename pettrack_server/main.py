@@ -99,4 +99,4 @@ if __name__ == "__main__":
     if args.verbose:
         print("Verbose logging enabled, setting uvicorn log level to 'debug'.")
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level=log_level, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level=log_level, reload=False)
