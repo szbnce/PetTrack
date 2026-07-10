@@ -233,7 +233,6 @@ class _MonitorScreenState extends State<MonitorScreen> {
   bool _isSleeping = false;
   Timer? _streamTimer;
   bool _isCapturing = false;
-  final GlobalKey _previewKey = GlobalKey();
   final GlobalKey _cameraKey = GlobalKey();
   final Battery _battery = Battery();
   Timer? _statusTimer;
@@ -546,12 +545,12 @@ class _MonitorScreenState extends State<MonitorScreen> {
                           border: Border.all(
                             color: Theme.of(
                               context,
-                            ).colorScheme.outline.withOpacity(0.5),
+                            ).colorScheme.outline.withValues(alpha: 0.5),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 10,
                               spreadRadius: 2,
                             ),
@@ -634,7 +633,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
                             fontSize: 14,
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                       ],

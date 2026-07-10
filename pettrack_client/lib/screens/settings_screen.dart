@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,23 +30,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _alertsBatteryEnabled = true;
   double _batteryThreshold = 20.0;
   bool _isLoading = true;
-
-  IconData _getPetIcon(String type) {
-    switch (type) {
-      case 'dog':
-        return Icons.pets;
-      case 'cat':
-        return Icons.pets;
-      case 'rabbit':
-        return Icons.cruelty_free;
-      case 'bird':
-        return Icons.flutter_dash;
-      case 'guineapig':
-        return Icons.pest_control_rodent;
-      default:
-        return Icons.pets;
-    }
-  }
 
   String _getLocalizedPetType(BuildContext context, String type) {
     final l10n = AppLocalizations.of(context)!;
@@ -174,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
-        print(l10n.decodingError(e.toString()));
+        debugPrint(l10n.decodingError(e.toString()));
       }
     }
 
@@ -230,7 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.save + " OK"),
+            content: Text("${AppLocalizations.of(context)!.save} OK"),
             backgroundColor: AppColors.primary,
           ),
         );
@@ -247,7 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.outline.withOpacity(0.05),
+            color: AppColors.outline.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -317,7 +299,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.outline.withOpacity(0.15),
+                            color: AppColors.outline.withValues(alpha: 0.15),
                             blurRadius: 15,
                             offset: const Offset(0, 5),
                           ),
@@ -403,8 +385,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               )
                               .toList(),
                       onChanged: (String? newValue) {
-                        if (newValue != null)
+                        if (newValue != null) {
                           setState(() => _petType = newValue);
+                        }
                       },
                     ),
                   ),
@@ -451,11 +434,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       'language_code',
                                       newValue,
                                     );
-                                    if (mounted)
+                                    if (context.mounted) {
                                       PetTrackClientApp.setLocale(
                                         context,
                                         Locale(newValue),
                                       );
+                                    }
                                   }
                                 },
                               ),
@@ -499,8 +483,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ),
                                 ],
                                 onChanged: (String? newValue) {
-                                  if (newValue != null)
+                                  if (newValue != null) {
                                     setState(() => _themeModeString = newValue);
+                                  }
                                 },
                               ),
                             ),
@@ -637,7 +622,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       if (confirm == true) {
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.clear();
-                        if (mounted) {
+                        if (context.mounted) {
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (_) => const BootScreen(),

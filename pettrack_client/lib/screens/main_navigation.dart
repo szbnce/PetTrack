@@ -57,7 +57,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: AppColors.outline.withOpacity(0.08),
+              color: AppColors.outline.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, -4),
             ),

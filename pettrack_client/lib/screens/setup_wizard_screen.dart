@@ -215,7 +215,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             }
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        // ignore
+      }
     });
   }
 
@@ -272,7 +274,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: InputDecoration(
                     labelText: l10n.petTypeTitle,
                     border: const OutlineInputBorder(),
@@ -359,7 +361,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               height: 50,
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.grey.withOpacity(0.5),
+                  color: Colors.grey.withValues(alpha: 0.5),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -407,7 +409,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                 shape: BoxShape.circle,
                 color: Theme.of(
                   context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
               ),
               alignment: Alignment.center,
               child: innerWidget,
@@ -448,7 +450,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          if (child != null) child,
+          ?child,
           if (child != null) const SizedBox(height: 32),
           actionButton,
         ],

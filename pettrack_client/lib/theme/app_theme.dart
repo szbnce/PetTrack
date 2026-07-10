@@ -14,8 +14,6 @@ class AppTheme {
         secondary: AppColors.secondary,
         surface: AppColors.surface,
         onSurface: AppColors.onSurface,
-        background: AppColors.background,
-        onBackground: AppColors.onBackground,
       ),
       textTheme: TextTheme(
         displayLarge: GoogleFonts.plusJakartaSans(
@@ -113,8 +111,6 @@ class AppTheme {
         secondary: AppColors.darkSecondary,
         surface: AppColors.darkSurface,
         onSurface: AppColors.darkOnSurface,
-        background: AppColors.darkBackground,
-        onBackground: AppColors.darkOnBackground,
       ),
       textTheme: TextTheme(
         displayLarge: GoogleFonts.plusJakartaSans(

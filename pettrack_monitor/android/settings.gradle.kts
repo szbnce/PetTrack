@@ -24,3 +24,4 @@ plugins {
 }
 
 include(":app")
+rootProject.name = "pettrack_monitor_android"

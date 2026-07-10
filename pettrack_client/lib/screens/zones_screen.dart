@@ -23,7 +23,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
   Uint8List? _latestFrame;
   String? _secretToken;
   Timer? _timer;
-  List<Offset> _currentPolygon = [];
+  final List<Offset> _currentPolygon = [];
   bool _isDrawing = false;
   final _zoneNameController = TextEditingController();
   String _selectedZoneType = 'toilet';
@@ -64,7 +64,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
         setState(() {
           // Add a dummy 'type' for UI colors since the API only returns name and polygon
           _existingZones = fetchedZones.map((z) {
-            print("DEBUG ZONE FETCHED: ${z['name']} -> ${z['type']}");
+            debugPrint("DEBUG ZONE FETCHED: ${z['name']} -> ${z['type']}");
             return {
               "name": z['name'],
               "polygon": z['polygon'],
@@ -103,7 +103,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
         } catch (e) {
           if (mounted) {
             final l10n = AppLocalizations.of(context)!;
-            print(l10n.decodingErrorZones(e.toString()));
+            debugPrint(l10n.decodingErrorZones(e.toString()));
           }
         }
       }
@@ -219,7 +219,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.outline.withOpacity(0.1),
+                    color: AppColors.outline.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -293,7 +293,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
-                          value: _selectedZoneType,
+                          initialValue: _selectedZoneType,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Theme.of(context).cardColor,
@@ -455,37 +455,37 @@ class _ZonesScreenState extends State<ZonesScreen> {
                       case 'toilet':
                         icon = Icons.wc;
                         color = Colors.blueGrey;
-                        bgColor = Colors.blueGrey.withOpacity(0.1);
+                        bgColor = Colors.blueGrey.withValues(alpha: 0.1);
                         subtitle = l10n.toiletZone;
                         break;
                       case 'bed':
                         icon = Icons.bed;
                         color = Colors.indigo;
-                        bgColor = Colors.indigo.withOpacity(0.1);
+                        bgColor = Colors.indigo.withValues(alpha: 0.1);
                         subtitle = l10n.bedZone;
                         break;
                       case 'water':
                         icon = Icons.water_drop;
                         color = Colors.blue;
-                        bgColor = Colors.blue.withOpacity(0.1);
+                        bgColor = Colors.blue.withValues(alpha: 0.1);
                         subtitle = l10n.waterZone;
                         break;
                       case 'food':
                         icon = Icons.restaurant;
                         color = Colors.orange;
-                        bgColor = Colors.orange.withOpacity(0.1);
+                        bgColor = Colors.orange.withValues(alpha: 0.1);
                         subtitle = l10n.foodZone;
                         break;
                       case 'play':
                         icon = Icons.sports_tennis;
                         color = Colors.green;
-                        bgColor = Colors.green.withOpacity(0.1);
+                        bgColor = Colors.green.withValues(alpha: 0.1);
                         subtitle = l10n.playZone;
                         break;
                       default:
                         icon = Icons.place;
                         color = AppColors.primary;
-                        bgColor = AppColors.primary.withOpacity(0.1);
+                        bgColor = AppColors.primary.withValues(alpha: 0.1);
                         subtitle = l10n.safeZone;
                     }
 
@@ -495,7 +495,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                         color: bgColor,
                         borderRadius: BorderRadius.circular(12),
                         border: zone['type'] == 'alert'
-                            ? Border.all(color: Colors.red.withOpacity(0.5))
+                            ? Border.all(color: Colors.red.withValues(alpha: 0.5))
                             : null,
                       ),
                       child: ListTile(
@@ -504,7 +504,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                           decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
                             shape: BoxShape.circle,
-                            border: Border.all(color: color.withOpacity(0.3)),
+                            border: Border.all(color: color.withValues(alpha: 0.3)),
                           ),
                           child: Icon(icon, color: color, size: 20),
                         ),
@@ -532,7 +532,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -543,37 +543,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
     );
   }
 
-  Widget _buildZoneBadge(String name, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 4),
-          Text(
-            name,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 }
 
 class PolygonPainter extends CustomPainter {
@@ -606,7 +576,7 @@ class PolygonPainter extends CustomPainter {
 
       final path = Path()..addPolygon(points, true);
       final fillPaint = Paint()
-        ..color = AppColors.primary.withOpacity(0.3)
+        ..color = AppColors.primary.withValues(alpha: 0.3)
         ..style = PaintingStyle.fill;
       canvas.drawPath(path, fillPaint);
     }
@@ -637,7 +607,7 @@ class SavedZonesPainter extends CustomPainter {
         final path = Path()..addPolygon(points, true);
 
         final fillPaint = Paint()
-          ..color = AppColors.primary.withOpacity(0.2)
+          ..color = AppColors.primary.withValues(alpha: 0.2)
           ..style = PaintingStyle.fill;
         canvas.drawPath(path, fillPaint);
 
@@ -679,7 +649,7 @@ class SavedZonesPainter extends CustomPainter {
           ),
           const Radius.circular(12),
         );
-        final bgPaint = Paint()..color = AppColors.onSurface.withOpacity(0.8);
+        final bgPaint = Paint()..color = AppColors.onSurface.withValues(alpha: 0.8);
         canvas.drawRRect(bgRect, bgPaint);
 
         textPainter.paint(

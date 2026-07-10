@@ -35,7 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _timer;
   bool _isServerOnline = true;
   List<dynamic> _activities = [];
-  Map<String, DateTime> _lastZoneAlerts = {};
+  final Map<String, DateTime> _lastZoneAlerts = {};
   Uint8List? _profilePicBytes;
   String _petType = 'rabbit';
   String? _monitorId;
@@ -118,21 +118,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _isServerOnline = true;
             });
           } catch (e) {
-            print("Frame decrypt error: $e");
+            debugPrint("Frame decrypt error: $e");
           }
         },
         onDone: () {
-          if (mounted)
+          if (mounted) {
             Future.delayed(const Duration(seconds: 3), _connectClientSocket);
+          }
         },
         onError: (e) {
-          if (mounted)
+          if (mounted) {
             Future.delayed(const Duration(seconds: 3), _connectClientSocket);
+          }
         },
       );
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         Future.delayed(const Duration(seconds: 3), _connectClientSocket);
+      }
     }
   }
 
@@ -173,68 +176,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _secretToken = prefs.getString('secret_token');
   }
 
-  Future<void> _fetchFrame() async {
-    if (_secretToken == null) return;
-    try {
-      final response = await http
-          .get(
-            Uri.parse('http://${widget.serverIp}/api/frame/latest'),
-            headers: {'x-api-token': widget.token},
-          )
-          .timeout(const Duration(seconds: 2));
-
-      if (response.statusCode == 200 && mounted) {
-        setState(() => _isServerOnline = true);
-        if (response.headers['content-type']?.contains('application/json') ??
-            false) {
-          setState(() {
-            _latestFrame = null;
-            _hasCameraError = true;
-          });
-        } else {
-          try {
-            final keyBytes = sha256.convert(utf8.encode(_secretToken!)).bytes;
-            final key = enc.Key.fromBase64(base64Url.encode(keyBytes));
-            final encrypter = enc.Encrypter(enc.Fernet(key));
-
-            final encryptedString = utf8.decode(response.bodyBytes);
-            final decryptedBytes = encrypter.decryptBytes(
-              enc.Encrypted.fromBase64(encryptedString),
-            );
-
-            DateTime? lastModified;
-            final lmHeader = response.headers['last-modified'];
-            if (lmHeader != null) {
-              try {
-                lastModified = HttpDate.parse(lmHeader);
-              } catch (_) {}
-            }
-
-            setState(() {
-              _latestFrame = Uint8List.fromList(decryptedBytes);
-              _hasCameraError = false;
-              _frameTimestamp = lastModified;
-            });
-          } catch (e) {
-            if (mounted) {
-              final l10n = AppLocalizations.of(context)!;
-              print(l10n.decodingError(e.toString()));
-            }
-            setState(() => _hasCameraError = true);
-          }
-        }
-      } else if (mounted) {
-        setState(() => _hasCameraError = true);
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _hasCameraError = true;
-          _isServerOnline = false;
-        });
-      }
-    }
-  }
 
   Future<void> _fetchActivity() async {
     try {
@@ -424,7 +365,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -537,7 +478,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.outline.withOpacity(0.1),
+                    color: AppColors.outline.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -571,7 +512,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Text(
                               l10n.serverUnreachableDesc,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 fontSize: 14,
                               ),
                               textAlign: TextAlign.center,
@@ -592,13 +533,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 Icon(
                                   Icons.videocam_off,
                                   size: 64,
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   l10n.cameraOffline,
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.5),
+                                    color: Colors.white.withValues(alpha: 0.5),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -725,7 +666,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -762,7 +703,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.outline.withOpacity(0.05),
+            color: AppColors.outline.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -848,7 +789,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -857,7 +798,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: AppColors.outline.withOpacity(0.2),
+                    color: AppColors.outline.withValues(alpha: 0.2),
                   ),
                 ),
             ],
