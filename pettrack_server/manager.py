@@ -19,5 +19,9 @@ class ConnectionManager:
         for connection in self.active.connections:
             await connection.send_bytes(data)
 
+    async def broadcast_text(self, text: str):
+        for connection in self.active.connections:
+            await connection.send_text(text)
+
 manager = ConnectionManager()
 client_manager = ConnectionManager()

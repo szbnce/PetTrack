@@ -2,6 +2,7 @@ import argparse
 import uvicorn
 import os
 import asyncio
+import json
 import jwt
 import socket
 import qrcode
@@ -103,11 +104,14 @@ async def client_websocket(websocket: WebSocket, token: str = None):
             await websocket.close(code=1008)
             return
     await client_manager.connect(websocket)
+    asyncio.create_task(manager.broadcast_text(json.dumps({"action": "set_fps", "fps": 5})))
     try:
         while True:
-            await websocket.recieve_text()
+            await websocket.receive_text()
     except Exception:
         client_manager.disconnect(websocket)
+        if len(client_manager.active.connections) == 0:
+            asyncio.create_task(manager.broadcast_text(json.dumps({"action": "set_fps", "fps": 0.5})))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the PetTrack Server")

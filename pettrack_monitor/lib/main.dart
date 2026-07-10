@@ -307,6 +307,13 @@ class _MonitorScreenState extends State<MonitorScreen> {
             _startStreaming();
           } else if (message == "STOP") {
             _stopStreaming(isManual: true);
+          } else {
+            try {
+              final data = json.decode(message);
+              if (data['action'] == 'set_fps' && data['fps'] != null) {
+                _updateStreamSpeed((data['fps'] as num).toDouble());
+              }
+            } catch (_) {}
           }
         },
         onDone: () {
@@ -357,6 +364,20 @@ class _MonitorScreenState extends State<MonitorScreen> {
         await _captureAndSendFrame();
       }
     });
+  }
+
+  void _updateStreamSpeed(double fps) {
+    if (!_isStreaming) return;
+    _streamTimer?.cancel();
+    final interval = (1000 / fps).round();
+    _streamTimer = Timer.periodic(Duration(milliseconds: interval), (
+      _,
+    ) async {
+      if (!_isCapturing) {
+        await _captureAndSendFrame();
+      }
+    });
+    debugPrint("Stream speed updated to $fps FPS ($interval ms)");
   }
 
   void _stopStreaming({bool isManual = false}) {
@@ -497,7 +518,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
                   value: 'theme',
                   child: Text(
                     themeNotifier.value == ThemeMode.dark
-                        ? l10n.lightMode,
+                        ? l10n.lightMode
                         : l10n.darkMode,
                   ),
                 ),
