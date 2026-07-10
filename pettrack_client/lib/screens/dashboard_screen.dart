@@ -31,6 +31,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   Uint8List? _latestFrame;
   String? _secretToken;
+  WebSocket? _clientSocket;
   Timer? _timer;
   bool _isServerOnline = true;
   List<dynamic> _activities = [];
@@ -86,6 +87,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadSecret();
 
     _startPolling();
+    _connectClientSocket();
+  }
+
+  void _connectClientSocket() async {
+    try {
+      final wsUrl = 'ws://${widget.serverIp}/ws/client?token=${widget.token}';
+      _clientSocket = await WebSocket.connect(wsUrl);
+      _clientSocket!.listen(
+        (data) {
+          if (!mounted || _secretToken == null) return;
+          try {
+            String encryptedString;
+            if (data is String) {
+              encryptedString = data;
+            } else if (data is List<int>) {
+              encryptedString = utf8.decode(data);
+            } else {
+              return;
+            }
+            final keyBytes = sha256.convert(utf8.encode(_secretToken!)).bytes;
+            final key = enc.Key.fromBase64(base64Url.encode(keyBytes));
+            final encrypter = enc.Encrypter(enc.Fernet(key));
+            final decryptedBytes = encrypter.decryptBytes(
+              enc.Encrypted.fromBase64(encryptedString),
+            );
+            setState(() {
+              _latestFrame = Uint8List.fromList(decryptedBytes);
+              _hasCameraError = false;
+              _isServerOnline = true;
+            });
+          } catch (e) {
+            print("Frame decrypt error: $e");
+          }
+        },
+        onDone: () {
+          if (mounted)
+            Future.delayed(const Duration(seconds: 3), _connectClientSocket);
+        },
+        onError: (e) {
+          if (mounted)
+            Future.delayed(const Duration(seconds: 3), _connectClientSocket);
+        },
+      );
+    } catch (e) {
+      if (mounted)
+        Future.delayed(const Duration(seconds: 3), _connectClientSocket);
+    }
   }
 
   Future<void> _loadAlertSettings() async {
@@ -115,7 +163,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _startPolling() {
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (_) {
-      _fetchFrame();
       _fetchActivity();
       _fetchStatus();
     });
@@ -279,6 +326,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _clientSocket?.close();
     super.dispose();
   }
 

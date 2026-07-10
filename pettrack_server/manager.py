@@ -20,3 +20,4 @@ class ConnectionManager:
             await connection.send_bytes(data)
 
 manager = ConnectionManager()
+client_manager = ConnectionManager()

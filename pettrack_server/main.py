@@ -2,12 +2,13 @@ import argparse
 import uvicorn
 import os
 import asyncio
+import jwt
 import socket
 import qrcode
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
-from manager import manager
-from api_routes import router as zones_router, auth_router, monitor_state, active_zones, update_latest_frame, SECRET_TOKEN
+from manager import manager, client_manager
+from api_routes import router as zones_router, auth_router, monitor_state, active_zones, update_latest_frame, SECRET_TOKEN, fernet
 from tasks import cleanup_old_images
 from vision import process_and_save_frame
 from database import init_db, get_zones
@@ -71,6 +72,9 @@ async def tracker_websocket(websocket: WebSocket, token: str = None, client_id: 
             data = await websocket.receive_bytes()
             monitor_state["frame_count"] += 1
             update_latest_frame(data)
+
+            encrypted_data = fernet.encrypt(data)
+            asyncio.create_task(client_manager.broadcast_bytes(encrypted_data))
             
             if monitor_state["frame_count"] % 10 == 0:
                 print(f"Received frame #{monitor_state['frame_count']} from {monitor_id}: {len(data)} bytes", flush=True)
@@ -86,6 +90,24 @@ async def tracker_websocket(websocket: WebSocket, token: str = None, client_id: 
         manager.disconnect(websocket)
         monitor_state["online"] = False
         print(f"Error: {e}", flush=True)
+
+@app.websocket("/ws/client")
+async def client_websocket(websocket: WebSocket, token: str = None):
+    if not token:
+        await websocket.close(code=1008)
+        return
+    if token != SECRET_TOKEN:
+        try:
+            jwt.decode(token, SECRET_TOKEN, algorithms=["HS256"])
+        except Exception:
+            await websocket.close(code=1008)
+            return
+    await client_manager.connect(websocket)
+    try:
+        while True:
+            await websocket.recieve_text()
+    except Exception:
+        client_manager.disconnect(websocket)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the PetTrack Server")
