@@ -721,6 +721,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Searching...'**
   String get searchingStatus;
+
+  /// No description provided for @navMedical.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical records'**
+  String get navMedical;
+
+  /// No description provided for @medications.
+  ///
+  /// In en, this message translates to:
+  /// **'Medications'**
+  String get medications;
+
+  /// No description provided for @vaccines.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccines'**
+  String get vaccines;
+
+  /// No description provided for @addMedication.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Medication'**
+  String get addMedication;
+
+  /// No description provided for @addVaccine.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Vaccine'**
+  String get addVaccine;
+
+  /// No description provided for @dose.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose'**
+  String get dose;
+
+  /// No description provided for @time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get time;
+
+  /// No description provided for @dateGiven.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Given'**
+  String get dateGiven;
+
+  /// No description provided for @nextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Due'**
+  String get nextDue;
+
+  /// No description provided for @enableAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Alert'**
+  String get enableAlert;
+
+  /// No description provided for @medName.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication name'**
+  String get medName;
+
+  /// No description provided for @vacName.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine name'**
+  String get vacName;
+
+  /// No description provided for @noMedications.
+  ///
+  /// In en, this message translates to:
+  /// **'No medications added yet.'**
+  String get noMedications;
+
+  /// No description provided for @noVaccines.
+  ///
+  /// In en, this message translates to:
+  /// **'No vaccines added yet.'**
+  String get noVaccines;
+
+  /// No description provided for @saveMedication.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Medication'**
+  String get saveMedication;
+
+  /// No description provided for @saveVaccine.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Vaccine'**
+  String get saveVaccine;
+
+  /// No description provided for @cardColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Color:'**
+  String get cardColor;
+
+  /// No description provided for @alertFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert frequency (in hours)'**
+  String get alertFrequency;
+
+  /// No description provided for @alertFrequencyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g, 12 or 24'**
+  String get alertFrequencyHint;
+
+  /// No description provided for @medTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication Time!'**
+  String get medTimeTitle;
+
+  /// No description provided for @medTimeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to give: {name} ({dose})'**
+  String medTimeBody(String name, String dose);
+
+  /// No description provided for @everyXHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {hours} hours'**
+  String everyXHours(int hours);
 }
 
 class _AppLocalizationsDelegate

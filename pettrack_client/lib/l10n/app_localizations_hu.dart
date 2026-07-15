@@ -356,4 +356,74 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get searchingStatus => 'Keresés...';
+
+  @override
+  String get navMedical => 'Egészségügy';
+
+  @override
+  String get medications => 'Gyógyszerek';
+
+  @override
+  String get vaccines => 'Oltások';
+
+  @override
+  String get addMedication => 'Gyógyszer felvétele';
+
+  @override
+  String get addVaccine => 'Oltás felvétele';
+
+  @override
+  String get dose => 'Dózis';
+
+  @override
+  String get time => 'Időpont';
+
+  @override
+  String get dateGiven => 'Beadás dátuma';
+
+  @override
+  String get nextDue => 'Következő esedékes';
+
+  @override
+  String get enableAlert => 'Riasztás bekapcsolása';
+
+  @override
+  String get medName => 'Gyógyszer neve';
+
+  @override
+  String get vacName => 'Oltás neve';
+
+  @override
+  String get noMedications => 'Még nincs gyógyszer rögzítve.';
+
+  @override
+  String get noVaccines => 'Még nincs oltás rögzítve.';
+
+  @override
+  String get saveMedication => 'Gyógyszer mentése';
+
+  @override
+  String get saveVaccine => 'Oltás mentése';
+
+  @override
+  String get cardColor => 'Kártya színe:';
+
+  @override
+  String get alertFrequency => 'Értesítés gyakorisága (órában)';
+
+  @override
+  String get alertFrequencyHint => 'pl. 12 vagy 24';
+
+  @override
+  String get medTimeTitle => 'Gyógyszer idő!';
+
+  @override
+  String medTimeBody(String name, String dose) {
+    return 'Ideje beadni: $name ($dose)';
+  }
+
+  @override
+  String everyXHours(int hours) {
+    return 'Minden $hours órában';
+  }
 }

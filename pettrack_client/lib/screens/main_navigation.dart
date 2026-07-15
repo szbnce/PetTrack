@@ -4,6 +4,7 @@ import '../theme/colors.dart';
 import 'dashboard_screen.dart';
 import 'zones_screen.dart';
 import 'settings_screen.dart';
+import 'medical_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final String serverIp;
@@ -36,7 +37,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         petName: widget.petName,
       ),
       ZonesScreen(serverIp: widget.serverIp, token: widget.token),
-      const SettingsScreen(), // Settings now loads from SharedPreferences inside
+      const MedicalScreen(),
+      const SettingsScreen(),
     ];
   }
 
@@ -44,63 +46,93 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     setState(() {
       _selectedIndex = index;
     });
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    String getTitle() {
+      switch (_selectedIndex) {
+        case 0:
+          return l10n.appName;
+        case 1:
+          return l10n.navZones;
+        case 2:
+          return l10n.navMedical;
+        case 3:
+          return l10n.navSettings;
+        default:
+          return l10n.appName;
+      }
+    }
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.outline.withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
+      appBar: AppBar(
+        title: Text(getTitle()),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Icon(Icons.pets, size: 48, color: Colors.white),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.petName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard),
+              title: Text(l10n.navDashboard),
+              selected: _selectedIndex == 0,
+              selectedColor: AppColors.primary,
+              onTap: () => _onItemTapped(0),
+            ),
+            ListTile(
+              leading: const Icon(Icons.map),
+              title: Text(l10n.navZones),
+              selected: _selectedIndex == 1,
+              selectedColor: AppColors.primary,
+              onTap: () => _onItemTapped(1),
+            ),
+            ListTile(
+              leading: const Icon(Icons.medical_services),
+              title: Text(l10n.navMedical),
+              selected: _selectedIndex == 2,
+              selectedColor: AppColors.primary,
+              onTap: () => _onItemTapped(2),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: Text(l10n.navSettings),
+              selected: _selectedIndex == 3,
+              selectedColor: AppColors.primary,
+              onTap: () => _onItemTapped(3),
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: BottomNavigationBar(
-            items: <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.dashboard_outlined),
-                activeIcon: const Icon(Icons.dashboard),
-                label: l10n.navDashboard,
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.map_outlined),
-                activeIcon: const Icon(Icons.map),
-                label: l10n.navZones,
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.settings_outlined),
-                activeIcon: const Icon(Icons.settings),
-                label: l10n.navSettings,
-              ),
-            ],
-            currentIndex: _selectedIndex,
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: AppColors.tertiary,
-            onTap: _onItemTapped,
-            backgroundColor: Theme.of(context).cardColor,
-            type: BottomNavigationBarType.fixed,
-            elevation: 0,
-            selectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-          ),
-        ),
       ),
+      body: _screens[_selectedIndex],
     );
   }
 }

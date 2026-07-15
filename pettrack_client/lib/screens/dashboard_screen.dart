@@ -176,7 +176,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _secretToken = prefs.getString('secret_token');
   }
 
-
   Future<void> _fetchActivity() async {
     try {
       final response = await http
@@ -317,26 +316,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Row(
-          children: [
-            const Icon(Icons.pets, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(
-              l10n.appName,
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
+    return SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -658,8 +638,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 32),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildChip(IconData icon, String label) {

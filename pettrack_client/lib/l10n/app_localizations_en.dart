@@ -356,4 +356,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchingStatus => 'Searching...';
+
+  @override
+  String get navMedical => 'Medical records';
+
+  @override
+  String get medications => 'Medications';
+
+  @override
+  String get vaccines => 'Vaccines';
+
+  @override
+  String get addMedication => 'Add Medication';
+
+  @override
+  String get addVaccine => 'Add Vaccine';
+
+  @override
+  String get dose => 'Dose';
+
+  @override
+  String get time => 'Time';
+
+  @override
+  String get dateGiven => 'Date Given';
+
+  @override
+  String get nextDue => 'Next Due';
+
+  @override
+  String get enableAlert => 'Enable Alert';
+
+  @override
+  String get medName => 'Medication name';
+
+  @override
+  String get vacName => 'Vaccine name';
+
+  @override
+  String get noMedications => 'No medications added yet.';
+
+  @override
+  String get noVaccines => 'No vaccines added yet.';
+
+  @override
+  String get saveMedication => 'Save Medication';
+
+  @override
+  String get saveVaccine => 'Save Vaccine';
+
+  @override
+  String get cardColor => 'Card Color:';
+
+  @override
+  String get alertFrequency => 'Alert frequency (in hours)';
+
+  @override
+  String get alertFrequencyHint => 'e.g, 12 or 24';
+
+  @override
+  String get medTimeTitle => 'Medication Time!';
+
+  @override
+  String medTimeBody(String name, String dose) {
+    return 'Time to give: $name ($dose)';
+  }
+
+  @override
+  String everyXHours(int hours) {
+    return 'Every $hours hours';
+  }
 }

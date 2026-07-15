@@ -195,5 +195,44 @@
   "monitorAndConnection": "Monitor & Connection",
   "offlineStatus": "OFFLINE!",
   "liveStatus": "Live",
-  "searchingStatus": "Searching..."
+  "searchingStatus": "Searching...",
+  "navMedical": "Medical records",
+  "medications": "Medications",
+  "vaccines": "Vaccines",
+  "addMedication": "Add Medication",
+  "addVaccine": "Add Vaccine",
+  "dose": "Dose",
+  "time": "Time",
+  "dateGiven": "Date Given",
+  "nextDue": "Next Due",
+  "enableAlert": "Enable Alert",
+  "medName": "Medication name",
+  "vacName": "Vaccine name",
+  "noMedications": "No medications added yet.",
+  "noVaccines": "No vaccines added yet.",
+  "saveMedication": "Save Medication",
+  "saveVaccine": "Save Vaccine",
+  "cardColor": "Card Color:",
+  "alertFrequency": "Alert frequency (in hours)",
+  "alertFrequencyHint": "e.g, 12 or 24",
+  "medTimeTitle": "Medication Time!",
+  "medTimeBody": "Time to give: {name} ({dose})",
+  "@medTimeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "dose": {
+        "type": "String"
+      }
+    }
+  },
+  "everyXHours": "Every {hours} hours",
+  "@everyXHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  }
 }

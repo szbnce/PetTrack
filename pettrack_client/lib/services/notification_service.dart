@@ -66,4 +66,46 @@ class NotificationService {
       notificationDetails: platformChannelSpecifics,
     );
   }
+
+  Future<void> schedulePeriodicNotification({
+    required int id,
+    required String title,
+    required String body,
+    required int intervalHours,
+  }) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+          'medical_alerts_channel',
+          'Medical Alerts',
+          channelDescription: 'Értesítések a gyógyszerek beadásáról',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
+
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
+
+    RepeatInterval interval = RepeatInterval.daily;
+    if (intervalHours <= 1) {
+      interval = RepeatInterval.hourly;
+    } else if (intervalHours <= 24) {
+      interval = RepeatInterval.daily;
+    } else {
+      interval = RepeatInterval.weekly;
+    }
+
+    await _flutterLocalNotificationsPlugin.periodicallyShow(
+      id: id,
+      title: title,
+      body: body,
+      repeatInterval: interval,
+      notificationDetails: platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  Future<void> cancelNotification(int id) async {
+    await _flutterLocalNotificationsPlugin.cancel(id: id);
+  }
 }
