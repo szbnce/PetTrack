@@ -3,6 +3,7 @@ import uvicorn
 import os
 import asyncio
 import json
+import random
 import jwt
 import socket
 import qrcode
@@ -10,7 +11,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from manager import manager, client_manager
-from api_routes import router as zones_router, auth_router, monitor_state, active_zones, update_latest_frame, SECRET_TOKEN, fernet
+from api_routes import router as zones_router, auth_router, monitor_state, active_zones, update_latest_frame, SECRET_TOKEN, fernet, set_key
 from tasks import cleanup_old_images
 from vision import process_and_save_frame
 from database import init_db, get_zones
@@ -53,6 +54,13 @@ async def startup_event():
     qr = qrcode.QRCode()
     qr.add_data(qr_data)
     qr.make(fit=True)
+
+    web_pin = os.getenv("PETTRACK_WEB_PIN")
+    if not web_pin:
+        web_pin = f"{random.randint(1000, 9999):04d}"
+        set_key(".env", "PETTRACK_WEB_PIN", web_pin)
+        os.environ["PETTRACK_WEB_PIN"] = web_pin
+
     print("\n" + "="*55)
     print("SCAN THIS QR CODE WITH PETTRACK CLIENT!")
     print("="*55)
@@ -61,6 +69,8 @@ async def startup_event():
     print("OR ENTER THESE DETAILS MANUALLY:")
     print(f"Server IP: {ip}:8000")
     print(f"Secret Token: {secret}")
+    print("="*55)
+    print(f"WEB DASHBOARD PIN: {web_pin}")
     print("="*55 + "\n")
 
 from fastapi.staticfiles import StaticFiles
@@ -138,8 +148,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     log_level = "debug" if args.verbose else "info"
-
-    if args.verbose:
-        print("Verbose logging enabled, setting uvicorn log level to 'debug'.")
-
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level=log_level, reload=False)

@@ -462,11 +462,9 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('pettrack_token') || '');
   const [serverUrl, setServerUrl] = useState(window.location.origin);
   const [isConfigured, setIsConfigured] = useState(!!localStorage.getItem('pettrack_token'));
-  const [inputToken, setInputToken] = useState('');
-  const [inputUrl, setInputUrl] = useState(window.location.origin);
-
   const [appMode, setAppMode] = useState(localStorage.getItem('pettrack_mode'));
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [pinInput, setPinInput] = useState('');
 
   const [isOnline, setIsOnline] = useState(false);
   const [batteryLevel, setBatteryLevel] = useState(100);
@@ -484,16 +482,6 @@ function App() {
 
   // A Vite Proxy miatt a webes kliens MINDIG a saját maga címét (window.location.origin) használja a backend eléréséhez!
   const actualServerUrl = window.location.origin;
-
-  const handleConnect = () => {
-    if (inputToken) {
-      localStorage.setItem('pettrack_token', inputToken);
-      localStorage.setItem('pettrack_url', actualServerUrl);
-      setToken(inputToken);
-      setServerUrl(actualServerUrl);
-      setIsConfigured(true);
-    }
-  };
 
   const t = locales[lang] || locales.en;
 
@@ -686,15 +674,25 @@ function App() {
     return () => clearInterval(interval);
   }, [isConfigured, token, serverUrl, appMode]);
 
-  const handleSaveToken = (e) => {
+  const handlePinLogin = async (e) => {
     e.preventDefault();
-    if (inputToken.trim() && inputUrl.trim()) {
-      localStorage.setItem('pettrack_token', inputToken.trim());
-      localStorage.setItem('pettrack_url', inputUrl.trim());
-      setToken(inputToken.trim());
-      setServerUrl(inputUrl.trim());
-      setIsConfigured(true);
-    }
+    if (!pinInput.trim()) return;
+
+    try {
+      const response = await fetch(`${actualServerUrl}/api/auth/login_pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pinInput.trim() }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('pettrack_token', data.secret);
+        localStorage.setItem('pettrack_url', actualServerUrl);
+        setToken(data.secret);
+        setServerUrl(actualServerUrl);
+        setIsConfigured(true);
+      } else { alert("INVALID PIN "); }
+    } catch (err) { console.error(err); alert("Connection error"); }
   };
 
   const handleLogout = () => {
@@ -750,25 +748,19 @@ function App() {
           </div>
           <h2 className="text-2xl font-bold mb-2">{t.welcome}</h2>
           <p className="text-slate-500 mb-6">
-            {t.enterUrl} <br /> {t.enterToken}
+            Enter your 4-digit PIN to access the dashboard.
           </p>
 
-          <form onSubmit={handleSaveToken} className="space-y-4">
-            <input
-              type="text"
-              className="input-field"
-              placeholder={t.placeholderUrl}
-              value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
-            />
+          <form onSubmit={handlePinLogin} className="space-y-4">
             <input
               type="password"
-              className="input-field"
-              placeholder={t.placeholderToken}
-              value={inputToken}
-              onChange={(e) => setInputToken(e.target.value)}
+              className="input-field text-center tracking-widest text-xl font-bold"
+              placeholder="••••"
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value)}
+              maxLength={4}
             />
-            <button type="submit" className="btn-primary w-full" disabled={!inputToken.trim() || !inputUrl.trim()}>
+            <button type="submit" className="btn-primary w-full" disabled={!pinInput.trim()}>
               {t.connect}
             </button>
           </form>

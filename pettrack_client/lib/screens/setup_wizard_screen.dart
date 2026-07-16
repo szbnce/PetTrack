@@ -24,7 +24,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
   final _nameController = TextEditingController();
   String _selectedType = 'dog';
-  String _pinCode = '';
 
   bool _isLoading = false;
   Timer? _monitorPollTimer;
@@ -105,31 +104,14 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     }
   }
 
-  void _onPinKeyPress(String key) {
-    setState(() {
-      if (key == 'back') {
-        if (_pinCode.isNotEmpty) {
-          _pinCode = _pinCode.substring(0, _pinCode.length - 1);
-        }
-      } else if (key == 'done') {
-        if (_pinCode.length == 4) {
-          _finishSetup();
-        }
-      } else {
-        if (_pinCode.length < 4) {
-          _pinCode += key;
-          if (_pinCode.length == 4) {
-            _finishSetup();
-          }
-        }
-      }
-    });
+  void _dispose() {
+    _nameController.dispose();
   }
 
   Future<void> _finishSetup() async {
     final l10n = AppLocalizations.of(context)!;
 
-    if (_nameController.text.isEmpty || _pinCode.length != 4) {
+    if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.setupErrEmpty)));
@@ -146,15 +128,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           'x-api-token': _jwtToken!,
         },
         body: jsonEncode({'name': _nameController.text, 'type': _selectedType}),
-      );
-
-      await http.post(
-        Uri.parse('http://$_serverIp/api/auth/set_pin'),
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-token': _jwtToken!,
-        },
-        body: jsonEncode({'pin': _pinCode}),
       );
 
       final prefs = await SharedPreferences.getInstance();
@@ -296,10 +269,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             actionButton: ElevatedButton(
               onPressed: () {
                 if (_nameController.text.isNotEmpty) {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
+                  _finishSetup();
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -313,16 +283,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                 style: const TextStyle(fontSize: 18),
               ),
             ),
-          ),
-
-          _buildPage(
-            title: l10n.setupPinTitle,
-            description: l10n.setupPinDesc,
-            icon: Icons.lock_outline,
-            child: _buildPinPad(),
-            actionButton: _isLoading
-                ? const CircularProgressIndicator()
-                : const SizedBox(),
           ),
 
           _buildPage(
@@ -348,77 +308,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     );
   }
 
-  Widget _buildPinPad() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(4, (index) {
-            bool isFilled = _pinCode.length > index;
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.5),
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                color: isFilled
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.transparent,
-              ),
-            );
-          }),
-        ),
-        const SizedBox(height: 40),
-        _buildKeypadRow(['1', '2', '3']),
-        _buildKeypadRow(['4', '5', '6']),
-        _buildKeypadRow(['7', '8', '9']),
-        _buildKeypadRow(['back', '0', 'done']),
-      ],
-    );
-  }
-
-  Widget _buildKeypadRow(List<String> keys) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: keys.map((key) {
-          Widget innerWidget;
-          if (key == 'back') {
-            innerWidget = const Icon(Icons.backspace_outlined, size: 28);
-          } else if (key == 'done') {
-            innerWidget = const Icon(Icons.check, size: 28);
-          } else {
-            innerWidget = Text(
-              key,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            );
-          }
-
-          return InkWell(
-            onTap: () => _onPinKeyPress(key),
-            customBorder: const CircleBorder(),
-            child: Container(
-              width: 75,
-              height: 75,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              ),
-              alignment: Alignment.center,
-              child: innerWidget,
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
 
   Widget _buildPage({
     required String title,
