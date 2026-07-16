@@ -60,7 +60,7 @@ async def process_and_save_frame(image_bytes: bytes):
 
     if _last_pet_center is not None:
         for zone_name, polygon_points in active_zones.items():
-            pts = np.array([[p["x"], p["y"]] for p in polygon_points], np.int32)
+            pts = np.array([[int(p["x"] * width), int(p["y"] * height)] for p in polygon_points], np.int32)
             pts = pts.reshape((-1, 1, 2))
 
             is_inside = cv2.pointPolygonTest(pts, _last_pet_center, measureDist=False)

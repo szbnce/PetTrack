@@ -21,3 +21,7 @@ class PetProfile(BaseModel):
 
 class LoginRequest(BaseModel):
     secret: str
+
+class MedicalDataSync(BaseModel):
+    medications: list[dict]
+    vaccines: list[dict]

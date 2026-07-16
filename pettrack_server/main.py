@@ -7,6 +7,7 @@ import jwt
 import socket
 import qrcode
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 
 from manager import manager, client_manager
 from api_routes import router as zones_router, auth_router, monitor_state, active_zones, update_latest_frame, SECRET_TOKEN, fernet
@@ -15,6 +16,14 @@ from vision import process_and_save_frame
 from database import init_db, get_zones
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 app.include_router(zones_router)
 app.include_router(auth_router)
@@ -107,7 +116,7 @@ async def client_websocket(websocket: WebSocket, token: str = None):
     asyncio.create_task(manager.broadcast_text(json.dumps({"action": "set_fps", "fps": 5})))
     try:
         while True:
-            await websocket.receive_text()
+            await websocket.receive()
     except Exception:
         client_manager.disconnect(websocket)
         if len(client_manager.active.connections) == 0:

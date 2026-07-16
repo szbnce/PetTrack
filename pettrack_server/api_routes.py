@@ -1,11 +1,12 @@
 import os
 import glob
-from fastapi import APIRouter, Depends, HTTPException, Query, Header, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Response, Request
 from fastapi.responses import FileResponse
 from typing import List, Dict
-from schemas import ZoneConfig, Point, MonitorUpdate, LoginRequest, PetProfile
-from database import save_zones, get_zones, get_events, get_pet, save_pet
 import time
+import asyncio
+from database import get_events, get_zones, save_zones, get_pet, save_pet, get_medical_data, save_medical_data
+from schemas import ZoneConfig, Point, MonitorUpdate, LoginRequest, PetProfile, MedicalDataSync
 from email.utils import formatdate
 import jwt
 from cryptography.fernet import Fernet
@@ -14,6 +15,7 @@ import hashlib
 import secrets
 from dotenv import load_dotenv, set_key
 from pydantic import BaseModel
+from manager import client_manager
 
 load_dotenv()
 
@@ -65,13 +67,40 @@ class PinRequest(BaseModel):
 
 @router.get("/api/status")
 async def get_status():
+    is_online = monitor_state.get("online", False)
+    if is_online and time.time() - monitor_state.get("last_seen", time.time()) > 5:
+        monitor_state["online"] = False
+        is_online = False
+        
     return {
-        "monitor_online": monitor_state.get("online", False),
+        "monitor_online": is_online,
         "frame_count": monitor_state.get("frame_count", 0),
         "monitor_id": monitor_state.get("id", "unnamed_monitor"),
         "battery_level": monitor_state.get("battery_level", 100),
         "is_charging": monitor_state.get("is_charging", False),
     }
+
+@router.post("/api/frame/web")
+async def receive_web_frame(request: Request, token: str = ""):
+    if token != SECRET_TOKEN:
+        return {"error": "Invalid token"}
+    data = await request.body()
+    update_latest_frame(data)
+    
+    # Broadcast to WebSocket clients
+    encrypted_data = fernet.encrypt(data)
+    asyncio.create_task(client_manager.broadcast_bytes(encrypted_data))
+
+    monitor_state["online"] = True
+    monitor_state["last_seen"] = time.time()
+    monitor_state["frame_count"] = monitor_state.get("frame_count", 0) + 1
+    
+    # Run vision every 30 frames
+    if monitor_state["frame_count"] % 30 == 0:
+        from vision import process_and_save_frame
+        asyncio.create_task(process_and_save_frame(data))
+        
+    return {"status": "ok"}
 
 @auth_router.post("/api/auth/login")
 async def login(req: LoginRequest):
@@ -113,7 +142,7 @@ async def update_pet_profile(pet: PetProfile):
 async def update_monitor_status(update: MonitorUpdate):
     monitor_state["battery_level"] = update.battery_level
     monitor_state["is_charging"] = update.is_charging
-    return {"status:" "ok"}
+    return {"status": "ok"}
 
 @router.get("/api/activity")
 async def get_activity(limit: int = 50):
@@ -134,6 +163,16 @@ async def update_zones(zones: List[ZoneConfig]):
         active_zones[z.name] = [{"x": p.x, "y": p.y} for p in z.polygon]
     await save_zones(zones)
     return {"message": "Zones updated successfully!"}
+
+@router.get("/api/medical")
+async def get_medical_route(token: str = None):
+    data = await get_medical_data()
+    return data
+
+@router.post("/api/medical")
+async def update_medical_route(data: MedicalDataSync, token: str = None):
+    await save_medical_data(data.medications, data.vaccines)
+    return {"status": "ok"}
 
 @router.get("/api/frame/latest")
 async def get_latest_frame():
@@ -160,3 +199,28 @@ async def get_latest_frame():
         "Last-Modified": formatdate(os.path.getmtime(latest), usegmt=True)
     }
     return Response(content=encrypted_data, media_type="application/octet-stream", headers=headers)
+
+
+@router.get("/api/frame/web")
+async def get_web_frame():
+    if latest_frame_info["data"]:
+        headers = {
+            "Last-Modified": formatdate(latest_frame_info["timestamp"], usegmt=True)
+        }
+        return Response(content=latest_frame_info["data"], media_type="image/jpeg", headers=headers)
+
+    folder = "captured_images"
+    if not os.path.exists(folder):
+        return {"error": "No images found"}
+        
+    files = glob.glob(os.path.join(folder, "*.png"))
+    if not files:
+        return {"error": "No images found"}
+    
+    latest = max(files, key=os.path.getmtime)
+    with open(latest, "rb") as f:
+        img_data = f.read()
+    headers = {
+        "Last-Modified": formatdate(os.path.getmtime(latest), usegmt=True)
+    }
+    return Response(content=img_data, media_type="image/jpeg", headers=headers)

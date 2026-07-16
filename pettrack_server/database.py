@@ -32,6 +32,13 @@ async def init_db():
                 profile_pic TEXT
                 )
         """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS medical_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                medications TEXT DEFAULT '[]',
+                vaccines TEXT DEFAULT '[]'
+                )
+        """)
         try:
             await db.execute("ALTER TABLE zones ADD COLUMN type TEXT DEFAULT 'safe'")
         except Exception:
@@ -89,4 +96,20 @@ async def save_pet(name: str, type: str, profile_pic: str = None):
             "INSERT INTO pets (name, type, profile_pic) VALUES (?, ?, ?)",
             (name, type, profile_pic)
         )
+        await db.commit()
+
+async def get_medical_data():
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute("SELECT medications, vaccines FROM medical_data ORDER BY id DESC LIMIT 1")
+        row = await cursor.fetchone()
+        if row:
+            return {"medications": json.loads(row["medications"]), "vaccines": json.loads(row["vaccines"])}
+        return {"medications": [], "vaccines": []}
+
+async def save_medical_data(medications: list, vaccines: list):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("DELETE FROM medical_data")
+        await db.execute("INSERT INTO medical_data (medications, vaccines) VALUES (?, ?)", 
+                         (json.dumps(medications), json.dumps(vaccines)))
         await db.commit()
