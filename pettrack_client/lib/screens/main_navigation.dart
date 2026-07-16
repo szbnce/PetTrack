@@ -37,7 +37,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         petName: widget.petName,
       ),
       ZonesScreen(serverIp: widget.serverIp, token: widget.token),
-      const MedicalScreen(),
+      MedicalScreen(serverIp: widget.serverIp, token: widget.token),
       const SettingsScreen(),
     ];
   }
@@ -80,9 +80,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-              ),
+              decoration: const BoxDecoration(color: AppColors.primary),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,

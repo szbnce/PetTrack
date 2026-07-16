@@ -6,7 +6,10 @@ import '../services/notification_service.dart';
 import 'dart:math';
 
 class MedicalScreen extends StatefulWidget {
-  const MedicalScreen({super.key});
+  final String serverIp;
+  final String token;
+
+  const MedicalScreen({super.key, required this.serverIp, required this.token});
 
   @override
   State<MedicalScreen> createState() => _MedicalScreenState();
@@ -43,8 +46,14 @@ class _MedicalScreenState extends State<MedicalScreen>
   }
 
   Future<void> _loadData() async {
-    final meds = await MedicalDataManager.loadMedications();
-    final vacs = await MedicalDataManager.loadVaccines();
+    final meds = await MedicalDataManager.loadMedications(
+      widget.serverIp,
+      widget.token,
+    );
+    final vacs = await MedicalDataManager.loadVaccines(
+      widget.serverIp,
+      widget.token,
+    );
     setState(() {
       _medications = meds;
       _vaccines = vacs;
@@ -151,7 +160,11 @@ class _MedicalScreenState extends State<MedicalScreen>
                 }
 
                 _medications.add(newMed);
-                await MedicalDataManager.saveMedications(_medications);
+                await MedicalDataManager.saveMedications(
+                  _medications,
+                  widget.serverIp,
+                  widget.token,
+                );
                 setState(() {});
                 if (mounted) Navigator.pop(ctx);
               },
@@ -237,7 +250,11 @@ class _MedicalScreenState extends State<MedicalScreen>
                   colorValue: selectedColor.value,
                 );
                 _vaccines.add(newVac);
-                await MedicalDataManager.saveVaccines(_vaccines);
+                await MedicalDataManager.saveVaccines(
+                  _vaccines,
+                  widget.serverIp,
+                  widget.token,
+                );
                 setState(() {});
                 if (mounted) Navigator.pop(ctx);
               },
@@ -339,7 +356,11 @@ class _MedicalScreenState extends State<MedicalScreen>
                 );
               }
               setState(() => _medications.removeAt(i));
-              await MedicalDataManager.saveMedications(_medications);
+              await MedicalDataManager.saveMedications(
+                _medications,
+                widget.serverIp,
+                widget.token,
+              );
             },
           ),
         );
@@ -394,7 +415,11 @@ class _MedicalScreenState extends State<MedicalScreen>
             isThreeLine: true,
             onLongPress: () async {
               setState(() => _vaccines.removeAt(i));
-              await MedicalDataManager.saveVaccines(_vaccines);
+              await MedicalDataManager.saveVaccines(
+                _vaccines,
+                widget.serverIp,
+                widget.token,
+              );
             },
           ),
         );

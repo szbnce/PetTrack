@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class Medication {
   final String id;
@@ -74,31 +75,103 @@ class MedicalDataManager {
   static const String _medKey = 'saved_medications';
   static const String _vacKey = 'saved_vaccines';
 
-  static Future<List<Medication>> loadMedications() async {
+  static Future<List<Medication>> loadMedications(
+    String serverIp,
+    String token,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://$serverIp/api/medical?token=$token'),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['medications'] != null) {
+          final List<dynamic> list = data['medications'];
+          final meds = list.map((e) => Medication.fromJson(e)).toList();
+
+          await prefs.setString(
+            _medKey,
+            jsonEncode(meds.map((e) => e.toJson()).toList()),
+          );
+          return meds;
+        }
+      }
+    } catch (_) {}
+
     final jsonStr = prefs.getString(_medKey);
     if (jsonStr == null) return [];
     final List<dynamic> list = jsonDecode(jsonStr);
     return list.map((e) => Medication.fromJson(e)).toList();
   }
 
-  static Future<void> saveMedications(List<Medication> meds) async {
+  static Future<void> saveMedications(
+    List<Medication> meds,
+    String serverIp,
+    String token,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = jsonEncode(meds.map((e) => e.toJson()).toList());
     await prefs.setString(_medKey, jsonStr);
+    await _syncToServer(serverIp, token);
   }
 
-  static Future<List<Vaccine>> loadVaccines() async {
+  static Future<List<Vaccine>> loadVaccines(
+    String serverIp,
+    String token,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://$serverIp/api/medical?token=$token'),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['vaccines'] != null) {
+          final List<dynamic> list = data['vaccines'];
+          final vacs = list.map((e) => Vaccine.fromJson(e)).toList();
+          await prefs.setString(
+            _vacKey,
+            jsonEncode(vacs.map((e) => e.toJson()).toList()),
+          );
+          return vacs;
+        }
+      }
+    } catch (_) {}
+
     final jsonStr = prefs.getString(_vacKey);
     if (jsonStr == null) return [];
     final List<dynamic> list = jsonDecode(jsonStr);
     return list.map((e) => Vaccine.fromJson(e)).toList();
   }
 
-  static Future<void> saveVaccines(List<Vaccine> vacs) async {
+  static Future<void> saveVaccines(
+    List<Vaccine> vacs,
+    String serverIp,
+    String token,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = jsonEncode(vacs.map((e) => e.toJson()).toList());
     await prefs.setString(_vacKey, jsonStr);
+    await _syncToServer(serverIp, token);
+  }
+
+  static Future<void> _syncToServer(String serverIp, String token) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final medStr = prefs.getString(_medKey) ?? '[]';
+      final vacStr = prefs.getString(_vacKey) ?? '[]';
+
+      await http.post(
+        Uri.parse('http://$serverIp/api/medical?token=$token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'medications': jsonDecode(medStr),
+          'vaccines': jsonDecode(vacStr),
+        }),
+      );
+    } catch (_) {}
   }
 }

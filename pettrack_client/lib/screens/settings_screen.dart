@@ -131,7 +131,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
-    final ip = _ipController.text.trim();
+    String ip = _ipController.text.trim();
+    if (ip.startsWith('http://')) ip = ip.replaceAll('http://', '');
+    if (ip.startsWith('https://')) ip = ip.replaceAll('https://', '');
+    if (!ip.contains(':')) ip = '$ip:8000';
+    _ipController.text = ip;
+    
     final secret = _tokenController.text.trim();
 
     setState(() => _isLoading = true);
@@ -544,6 +549,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               // 3. Monitor és Rendszer Kártya
               _buildCard(l10n.monitorAndConnection, [
+                Text(
+                  l10n.serverIp,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _ipController,
+                  decoration: InputDecoration(hintText: l10n.serverIpHint),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  l10n.secretToken,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _tokenController,
+                  obscureText: true,
+                ),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
