@@ -106,15 +106,12 @@ The easiest way to get started is to use the pre-built apps and Docker image.
 * An old Android Phone (The "Monitor") *(Minimal API requirement is 24, Android 7+)*
 * An Android phone (for the Client App) OR any device with a modern web browser (for the Web Dashboard).
 
-### 1. The Backend
-You don't need to configure a complex server. Just clone the repository and let Docker do the heavy lifting:
-
 ```bash
 git clone https://github.com/szbnce/PetTrack.git
-cd PetTrack/pettrack_server
+cd PetTrack
 
 # Copy the environment file and set your credentials
-cp .env.example .env
+cp pettrack_server/.env.example pettrack_server/.env
 
 # Build and start the backend
 docker-compose up --build -d
@@ -124,7 +121,7 @@ Your backend is now running!
 ### 2. The Apps
 1. Install `PetTrack_Monitor.apk` on your old phone from the [Releases](https://github.com/szbnce/PetTrack/releases) page. *(Pro Tip: Enable "Autostart" and disable Battery Optimization in Android settings for a stable 24/7 stream).*
 2. **For Android users:** Install `PetTrack_Client.apk` on your main phone.
-3. **For iOS/Desktop users:** Open your browser and navigate to the frontend (port 5173 by default) to view the Web Dashboard. You can install it to your home screen as a PWA!
+3. **For iOS/Desktop users:** Open your browser and navigate to the server's IP address (port 8000 by default) to view the Web Dashboard. You can install it to your home screen as a PWA!
 4. Connect to your server IP and API Token, and you're good to go!
 
 ---
@@ -166,9 +163,7 @@ npm run build
 
 ### 3. Build and Run the Backend
 ```bash
-cd ../pettrack_server
-cp .env.example .env
-# Edit .env with your API Token
+# Edit pettrack_server/.env with your API Token first
 docker-compose up --build -d
 ```
 

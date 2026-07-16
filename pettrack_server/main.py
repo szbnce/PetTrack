@@ -56,12 +56,22 @@ async def startup_event():
     print("\n" + "="*55)
     print("SCAN THIS QR CODE WITH PETTRACK CLIENT!")
     print("="*55)
-    qr.print_tty()
+    qr.print_ascii(invert=True)
+    print("="*55)
+    print("OR ENTER THESE DETAILS MANUALLY:")
+    print(f"Server IP: {ip}:8000")
+    print(f"Secret Token: {secret}")
     print("="*55 + "\n")
 
-@app.get("/")
-def read_root():
-    return {"message": "PetTrack server is running"}
+from fastapi.staticfiles import StaticFiles
+
+# Serve the static files from the React build
+if os.path.exists("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+else:
+    @app.get("/")
+    def read_root():
+        return {"message": "PetTrack server is running (Web Dashboard not built)"}
 
 @app.websocket("/ws")
 async def tracker_websocket(websocket: WebSocket, token: str = None, client_id: str = "unknown"):

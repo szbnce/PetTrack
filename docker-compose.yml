@@ -1,0 +1,8 @@
+services:
+  pettrack_server:
+    build: .
+    ports: 
+        - "8000:8000"
+    env_file: pettrack_server/.env
+    volumes:
+        - ./pettrack_server/captured_images:/app/captured_images
