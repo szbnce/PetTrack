@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slate-50: #121212;
+  --color-slate-100: #1E1E1E;
+  --color-slate-200: #2C3635;
+  --color-slate-300: #8E9E9D;
+  --color-slate-400: #8E9E9D;
+  --color-slate-500: #BFC9C8;
+  --color-slate-600: #E0E0E0;
+  --color-slate-700: #E0E0E0;
+  --color-slate-800: #FFFFFF;
+  --color-slate-900: #121212;
+
+  --color-teal-50: #003734;
+  --color-teal-100: #003734;
+  --color-teal-500: #4DB6AC;
+  --color-teal-600: #4DB6AC;
+
+  --color-brand-primary: #4DB6AC;
+  --color-brand-light: #2C3635;
+  --color-bg-main: #121212;
+  --color-card-bg: #1E1E1E;
+  --color-text-main: #E0E0E0;
+  --color-text-muted: #8E9E9D;
+  --color-border: #2C3635;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-main text-text-main min-h-screen font-sans;
+    color-scheme: dark;
+  }
+}
+
+@layer utilities {
+  .app-card {
+    @apply bg-card-bg border border-border rounded-2xl shadow-sm;
+  }
+
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 bg-brand-primary hover:opacity-90 active:translate-y-px disabled:bg-slate-300 disabled:cursor-not-allowed text-teal-50 px-6 py-3 rounded-xl font-bold transition-all;
+  }
+
+  .input-field {
+    @apply w-full bg-slate-100 border border-border rounded-xl p-4 text-slate-800 focus:border-brand-primary focus:ring-4 focus:ring-brand-light outline-none transition-all placeholder-slate-400;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-medium transition-colors hover:bg-slate-100 hover:text-slate-800;
+  }
+
+  .nav-item.active {
+    @apply bg-brand-primary text-white hover:bg-brand-primary hover:text-teal-50;
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "PetTrack App",
+  "short_name": "PetTrack",
+  "description": "PetTrack Monitoring & Client App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#14b8a6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
