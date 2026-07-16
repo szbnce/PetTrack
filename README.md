@@ -43,8 +43,8 @@ This project just started out, there isn't a magical all-in-one working app *yet
   The goal is to get the old phone's camera reliably to the server. Includes WakeLock, battery monitoring, and auto-reconnects.
 * 🟡 **Phase 2: The Backend (The Brain) — *In Progress***
   Once the data is being sent reliably, we use server-side logic to process it. This will be shoved into a Docker container.
-* 🟡 **Phase 3: The Frontend (The Client) - *In Progress***
-  This will be the shiny UI used daily on your main phone to see what the furballs are up to.
+* 🟡 **Phase 3: The Frontend (The Viewers) - *In Progress***
+  We provide two identical ways to view the cameras: a **Native Android App** (Flutter) and a **Web Dashboard** (React PWA) for iOS and Desktop. Choose whichever fits you best!
 
 ---
 ## ✨ Features
@@ -63,8 +63,8 @@ This project just started out, there isn't a magical all-in-one working app *yet
 </td>
 <td width="50%" valign="top">
 
-### Client App (The Viewer)
-- **Clean UI**: Simple and intuitive interface for easy navigation.
+### Client App / Web Dashboard
+- **Universal Access**: Use the native Android app (`.apk`) or the Web Dashboard (iOS/Desktop PWA). Both are identical in features!
 - **Live Feed Access**: Beautiful UI to keep track of your furry friends.
 - **Customizeable Zones**: Draw zones on the camera feed for motion detection and alerts.
 - **Localization & Theming**: Full Dark/Light mode support, English and Hungarian translations out of the box.
@@ -86,7 +86,7 @@ This project just started out, there isn't a magical all-in-one working app *yet
   <img src="pictures/Monitor/Setup1.png" width="30%">
 </p>
 
-### 💻 Client App
+### 💻 Web Dashboard
 <p align="center">
   <img src="pictures/Client/DashboardDark.jpg" width="30%">
   &nbsp; &nbsp;
@@ -104,7 +104,7 @@ The easiest way to get started is to use the pre-built apps and Docker image.
 ### Prerequisites
 * A machine running **Docker** and **Docker Compose**
 * An old Android Phone (The "Monitor") *(Minimal API requirement is 24, Android 7+)*
-* Your main phone (The "Client")
+* An Android phone (for the Client App) OR any device with a modern web browser (for the Web Dashboard).
 
 ### 1. The Backend
 You don't need to configure a complex server. Just clone the repository and let Docker do the heavy lifting:
@@ -122,10 +122,10 @@ docker-compose up --build -d
 Your backend is now running!
 
 ### 2. The Apps
-Go tho the [Releases](https://github.com/szbnce/PetTrack/releases) page and download the latest `.apk` files:
-1. Install `PetTrack_Monitor.apk` on your old phone. *(Pro Tip: Enable "Autostart" and disable Battery Optimization in Android settings for a stable 24/7 stream).*
-2. Install `PetTrack_Client.apk` on your main Phone.
-3. Open both apps, enter your server IP and API Token you set in your `docker-compose.yml`, and you're good to go!
+1. Install `PetTrack_Monitor.apk` on your old phone from the [Releases](https://github.com/szbnce/PetTrack/releases) page. *(Pro Tip: Enable "Autostart" and disable Battery Optimization in Android settings for a stable 24/7 stream).*
+2. **For Android users:** Install `PetTrack_Client.apk` on your main phone.
+3. **For iOS/Desktop users:** Open your browser and navigate to the frontend (port 5173 by default) to view the Web Dashboard. You can install it to your home screen as a PWA!
+4. Connect to your server IP and API Token, and you're good to go!
 
 ---
 
@@ -153,10 +153,15 @@ flutter pub get
 flutter build apk
 # The APK will be at build/app/outputs/flutter-apk/app-release.apk
 
-# Build the Client App
+# Build the Client App (Android)
 cd ../pettrack_client
 flutter pub get
 flutter build apk
+
+# Build the Web Dashboard (iOS / Desktop)
+cd ../pettrack_web
+npm install
+npm run build
 ```
 
 ### 3. Build and Run the Backend
