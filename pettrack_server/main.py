@@ -149,4 +149,4 @@ if __name__ == "__main__":
 
     log_level = "debug" if args.verbose else "info"
 
-uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level=log_level)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level=log_level)
