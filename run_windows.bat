@@ -11,7 +11,7 @@ if %ERRORLEVEL% neq 0 (
 
 where npm >nul 2>nul
 if %ERRORLEVEL% neq 0 (
-    echo Node.js (npm) is not installed. Please run install_windows.bat first.
+    echo Node.js npm is not installed. Please run install_windows.bat first.
     exit /b 1
 )
 
