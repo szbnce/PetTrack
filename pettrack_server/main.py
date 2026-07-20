@@ -75,14 +75,6 @@ async def startup_event():
 
 from fastapi.staticfiles import StaticFiles
 
-# Serve the static files from the React build
-if os.path.exists("static"):
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
-else:
-    @app.get("/")
-    def read_root():
-        return {"message": "PetTrack server is running (Web Dashboard not built)"}
-
 @app.websocket("/ws")
 async def tracker_websocket(websocket: WebSocket, token: str = None, client_id: str = "unknown"):
     if token != SECRET_TOKEN:
@@ -141,6 +133,14 @@ async def client_websocket(websocket: WebSocket, token: str = None):
         client_manager.disconnect(websocket)
         if len(client_manager.active.connections) == 0:
             asyncio.create_task(manager.broadcast_text(json.dumps({"action": "set_fps", "fps": 0.5})))
+
+
+if os.path.exists("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+else:
+    @app.get("/")
+    def read_root():
+        return {"message": "PetTrack server is running (Web Dashboard not built)"}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the PetTrack Server")
