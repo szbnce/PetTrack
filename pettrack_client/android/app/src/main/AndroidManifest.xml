@@ -3,7 +3,7 @@
     <uses-feature android:name="android.hardware.camera"/>
 
     <application
-        android:label="pettrack_client"
+        android:label="PetTrack Client"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
