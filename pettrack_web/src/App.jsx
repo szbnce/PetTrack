@@ -353,9 +353,15 @@ function MedicalViewer({ serverUrl, token, t }) {
     } catch (err) { console.error(err); }
   };
 
+  // Biztonságos fallback a generálásra, ha nincs HTTPS
+  const generateId = () => {
+    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  };
+
   const addMed = () => {
     if (!newMed.name) return;
-    const med = { id: crypto.randomUUID(), ...newMed, intervalHours: parseInt(newMed.intervalHours, 10) || 12 };
+    const med = { id: generateId(), ...newMed, intervalHours: parseInt(newMed.intervalHours, 10) || 12 };
     const newData = { ...medicalData, medications: [...(medicalData.medications || []), med] };
     handleSave(newData);
     setShowAddMed(false);
@@ -364,7 +370,7 @@ function MedicalViewer({ serverUrl, token, t }) {
 
   const addVac = () => {
     if (!newVac.name) return;
-    const vac = { id: crypto.randomUUID(), ...newVac };
+    const vac = { id: generateId(), ...newVac };
     const newData = { ...medicalData, vaccines: [...(medicalData.vaccines || []), vac] };
     handleSave(newData);
     setShowAddVac(false);
@@ -606,6 +612,9 @@ function App() {
 
     const startMonitor = async () => {
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error("SecureContext");
+        }
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -634,7 +643,11 @@ function App() {
         }, 200);
       } catch (err) {
         console.error("Camera access error:", err);
-        alert(t.errorMedia);
+        if (err.message === "SecureContext" || (err.name && err.name.includes('NotAllowedError'))) {
+          alert("Kamera hiba: Az iPhone és a modern böngészők blokkolják a kamerát HTTP kapcsolaton! Kérlek, localhost-ról nyisd meg, vagy használj HTTPS-t.");
+        } else {
+          alert(t.errorMedia);
+        }
       }
     };
 
