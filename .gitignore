@@ -133,3 +133,4 @@ pettrack_server/pettrack.db
 pettrack_server/captured_images/
 
 pettrack_server/static
+pettrack_server/replays/

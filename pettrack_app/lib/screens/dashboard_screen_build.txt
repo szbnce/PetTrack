@@ -1,0 +1,615 @@
+  Widget _buildCameraCard(AppLocalizations l10n, bool isDesktop) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!isDesktop) ...[
+          // Mobile header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.serverIp.contains('demo_ip') ? "Online" : l10n.liveVideo,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              _buildBadge(l10n),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+        Container(
+          height: isDesktop ? 400 : 220,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFF15181E), // Dark background matching the image
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+          ),
+          child: widget.serverIp.contains('demo_ip')
+              ? Center(
+                  child: Text(
+                    l10n.demoLivePreview,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (!_isServerOnline)
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.cloud_off,
+                                size: 64,
+                                color: Colors.redAccent,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.serverUnreachableTitle,
+                                style: const TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                l10n.serverUnreachableDesc,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        )
+                      else if (_latestFrame != null)
+                        Image.memory(
+                          _latestFrame!,
+                          fit: BoxFit.cover,
+                          gaplessPlayback: true,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.videocam_off,
+                                    size: 64,
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    l10n.cameraOffline,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.5),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        )
+                      else
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                          ),
+                        ),
+  
+                      // Overlay Chips
+                      Positioned(
+                        top: 16,
+                        left: 16,
+                        child: Row(
+                          children: [
+                            _buildBadge(l10n),
+                            const SizedBox(width: 8),
+                            _buildChip(
+                              _isCharging
+                                  ? Icons.battery_charging_full
+                                  : Icons.battery_full,
+                              "$_batteryLevel%",
+                            ),
+                            const SizedBox(width: 8),
+                            _buildChip(
+                              Icons.wifi,
+                              _monitorId ?? l10n.searchingStatus,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBadge(AppLocalizations l10n) {
+    return Builder(
+      builder: (context) {
+        final badge = _getBadgeInfo(l10n);
+        return Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.wifi_off,
+                size: 14,
+                color: badge.textColor,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                badge.text,
+                style: TextStyle(
+                  color: badge.textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileCard(AppLocalizations l10n) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2128), // Dark card background
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 100,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            child: Column(
+              children: [
+                Transform.translate(
+                  offset: const Offset(0, -50),
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: const Color(0xFF2C313C),
+                    backgroundImage: _profilePicBytes != null
+                        ? MemoryImage(_profilePicBytes!)
+                        : null,
+                    child: _profilePicBytes == null
+                        ? Icon(
+                            _getPetIcon(_petType),
+                            size: 40,
+                            color: Colors.white70,
+                          )
+                        : null,
+                  ),
+                ),
+                Transform.translate(
+                  offset: const Offset(0, -30),
+                  child: Column(
+                    children: [
+                      Text(
+                        _displayPetName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.loading, // "Loading data..." mockup
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.access_time, size: 14, color: Colors.white70),
+                            const SizedBox(width: 6),
+                            const Text("--", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventLog(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2128),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Event Log", // Will use localization if available
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Icon(Icons.access_time, size: 18, color: Colors.white54),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (_activities.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  style: BorderStyle.none, // We don't have dashed border natively easily, using solid
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  l10n.noRecentEvents,
+                  style: const TextStyle(color: Colors.white54, fontSize: 14),
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _activities.length > 5 ? 5 : _activities.length,
+              separatorBuilder: (_, __) => Divider(color: Colors.white.withValues(alpha: 0.1)),
+              itemBuilder: (context, index) {
+                final ev = _activities[index];
+                final isEnter = ev['event_type'] == 'zone_enter';
+                final date = DateTime.fromMillisecondsSinceEpoch(
+                  (ev['timestamp'] * 1000).toInt(),
+                );
+                final timeString = "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+                final zone = ev['zone_name'] ?? l10n.unknown;
+                
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        timeString,
+                        style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isEnter ? l10n.zoneEntered(_displayPetName, zone) : l10n.zoneLeft(_displayPetName, zone),
+                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopHeader(AppLocalizations l10n) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.navDashboard,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "Last updated: Just now",
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+          ),
+          child: const Center(
+            child: Text(
+              "EN",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 800) {
+          // Desktop Layout
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDesktopHeader(l10n),
+                const SizedBox(height: 32),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left Column (Flex 2)
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        children: [
+                          _buildCameraCard(l10n, true),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildStatCard(
+                                  context,
+                                  Icons.access_time,
+                                  "--", // _getLastSeen(l10n)
+                                  "",
+                                  "LAST SEEN\nNo data available.",
+                                  const Color(0xFF122C2A), // Dark teal bg
+                                  AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildStatCard(
+                                  context,
+                                  Icons.brightness_3,
+                                  "--",
+                                  "",
+                                  "MOST SEEN\nNo data available.",
+                                  const Color(0xFF2C241B), // Dark orange bg
+                                  Colors.orange,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    // Right Column (Flex 1)
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          _buildProfileCard(l10n),
+                          const SizedBox(height: 24),
+                          _buildEventLog(l10n),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        } else {
+          // Mobile Layout (legacy)
+          return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.greetingsList.split('|')[_greetingIndex],
+                              style: Theme.of(context).textTheme.displaySmall,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              l10n.subGreetingsList.split('|')[_subGreetingIndex],
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 24,
+                              backgroundColor: AppColors.primary,
+                              backgroundImage: _profilePicBytes != null
+                                  ? MemoryImage(_profilePicBytes!)
+                                  : null,
+                              child: _profilePicBytes == null
+                                  ? Icon(
+                                      _getPetIcon(_petType),
+                                      color: Theme.of(context).colorScheme.onPrimary,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _displayPetName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  _buildCameraCard(l10n, false),
+                  const SizedBox(height: 24),
+
+                  // Stats row (Mock data)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          Icons.favorite,
+                          _getFavoriteZone(),
+                          "",
+                          l10n.favoriteZone,
+                          AppColors.surfaceVariant,
+                          AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          Icons.access_time,
+                          _getLastSeen(l10n),
+                          "",
+                          l10n.lastSeen,
+                          const Color(0xFFFFDBC9),
+                          AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Activities Timeline
+                  Text(
+                    l10n.activities,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (_activities.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Center(
+                        child: Text(
+                          l10n.noRecentEvents,
+                          style: const TextStyle(color: AppColors.outline),
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _activities.length,
+                      itemBuilder: (context, index) {
+                        final ev = _activities[index];
+                        final isEnter = ev['event_type'] == 'zone_enter';
+                        final date = DateTime.fromMillisecondsSinceEpoch(
+                          (ev['timestamp'] * 1000).toInt(),
+                        );
+                        final timeString =
+                            "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+                        final zone = ev['zone_name'] ?? l10n.unknown;
+
+                        return _buildTimelineItem(
+                          isEnter ? Icons.meeting_room : Icons.directions_walk,
+                          isEnter ? AppColors.primary : AppColors.secondary,
+                          isEnter
+                              ? l10n.zoneEntered(_displayPetName, zone)
+                              : l10n.zoneLeft(_displayPetName, zone),
+                          isEnter ? l10n.cameraDetectedMovement : l10n.leftTheZone,
+                          timeString,
+                          isLast: index == _activities.length - 1,
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+        }
+      },
+    );
+  }

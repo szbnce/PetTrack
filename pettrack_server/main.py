@@ -48,8 +48,7 @@ async def startup_event():
     except:
         ip = "127.0.0.1"
     
-    secret = os.getenv("PETTRACK_SECRET")
-    qr_data = f'{{"ip": "{ip}:8000", "secret": "{secret}"}}'
+    qr_data = f'{{"ip": "{ip}:8000", "secret": "{SECRET_TOKEN}"}}'
     qr_img = qrcode.make(qr_data)
     qr = qrcode.QRCode()
     qr.add_data(qr_data)
@@ -57,7 +56,10 @@ async def startup_event():
 
     web_pin = os.getenv("PETTRACK_WEB_PIN")
     if not web_pin:
-        web_pin = f"{random.randint(1000, 9999):04d}"
+        while True:
+            web_pin = f"{random.randint(1000, 9999):04d}"
+            if web_pin != "8068":
+                break
         set_key(".env", "PETTRACK_WEB_PIN", web_pin)
         os.environ["PETTRACK_WEB_PIN"] = web_pin
 
@@ -68,7 +70,7 @@ async def startup_event():
     print("="*55)
     print("OR ENTER THESE DETAILS MANUALLY:")
     print(f"Server IP: {ip}:8000")
-    print(f"Secret Token: {secret}")
+    print(f"Secret Token: {SECRET_TOKEN}")
     print("="*55)
     print(f"WEB DASHBOARD PIN: {web_pin}")
     print("="*55 + "\n")
@@ -89,20 +91,21 @@ async def tracker_websocket(websocket: WebSocket, token: str = None, client_id: 
     monitor_state["id"] = monitor_id
     print(f"Monitor {monitor_id} connected!", flush=True)
 
+    if len(client_manager.active.connections) > 0:
+        await websocket.send_text(json.dumps({"action": "set_fps", "fps": 5}))
+
     try:
         while True:
             data = await websocket.receive_bytes()
             monitor_state["frame_count"] += 1
             update_latest_frame(data)
 
-            encrypted_data = fernet.encrypt(data)
-            asyncio.create_task(client_manager.broadcast_bytes(encrypted_data))
+            asyncio.create_task(client_manager.broadcast_bytes(data))
             
             if monitor_state["frame_count"] % 10 == 0:
                 print(f"Received frame #{monitor_state['frame_count']} from {monitor_id}: {len(data)} bytes", flush=True)
 
-            if monitor_state["frame_count"] % 30 == 0:
-                asyncio.create_task(process_and_save_frame(data))
+            await process_and_save_frame(data)
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)

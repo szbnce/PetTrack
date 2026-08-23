@@ -2,21 +2,28 @@ import cv2
 import numpy as np
 import time
 import os
+import asyncio
+import subprocess
 from api_routes import active_zones
 from database import log_event
 
 os.makedirs("captured_images", exist_ok=True)
+os.makedirs("replays", exist_ok=True)
 
 _last_zones: set = set()
 _last_pet_center = None
 
 _bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=50, detectShadows=False)
 
+_video_writer = None
+_recording_end_time = 0
+_current_video_path = ""
+_fps = 5
+
 async def process_and_save_frame(image_bytes: bytes):
-    global _last_zones, _last_pet_center
+    global _last_zones, _last_pet_center, _video_writer, _recording_end_time, _current_video_path
 
     timestamp = int(time.time())
-    file_path = f"captured_images/frame_{timestamp}.png"
 
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -27,15 +34,26 @@ async def process_and_save_frame(image_bytes: bytes):
     
     height, width = img.shape[:2]
 
+    # Write to video if recording
+    if _video_writer is not None:
+        _video_writer.write(img)
+        if time.time() > _recording_end_time:
+            _video_writer.release()
+            _video_writer = None
+            print(f"Finished recording raw video: {_current_video_path}", flush=True)
+            
+            raw_path = _current_video_path.replace(".mp4", "_raw.mp4")
+            subprocess.Popen(f"ffmpeg -y -i {raw_path} -vcodec libx264 -pix_fmt yuv420p {_current_video_path} && rm {raw_path}", shell=True)
+            print(f"Started FFmpeg conversion for {_current_video_path}", flush=True)
+
+    # For motion detection, we downscale
     small_img = cv2.resize(img, (320, 240))
     gray = cv2.cvtColor(small_img, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
     fg_mask = _bg_subtractor.apply(gray)
-
     thresh = cv2.threshold(fg_mask, 25, 255, cv2.THRESH_BINARY)[1]
     thresh = cv2.dilate(thresh, None, iterations=2)
-
     contours, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     current_pet_center = None
@@ -43,10 +61,9 @@ async def process_and_save_frame(image_bytes: bytes):
 
     for contour in contours:
         area = cv2.contourArea(contour)
-        if area > 300 and area > largest_area:
+        if area > 100 and area > largest_area:
             largest_area = area
             (x, y, w, h) = cv2.boundingRect(contour)
-
             scale_x = width / 320
             scale_y = height / 240
             cx = int((x + w / 2) * scale_x)
@@ -55,24 +72,48 @@ async def process_and_save_frame(image_bytes: bytes):
     
     if current_pet_center is not None:
         _last_pet_center = current_pet_center
+        # Update motion time
+        global _last_motion_time
+        _last_motion_time = time.time()
+        print(f"DEBUG: Motion detected at {current_pet_center}, Area: {largest_area}", flush=True)
+    elif time.time() - globals().get('_last_motion_time', 0) > 5.0:
+        # No motion for 5 seconds, clear the pet center
+        if _last_pet_center is not None:
+            print("DEBUG: Motion timed out, clearing _last_pet_center", flush=True)
+        _last_pet_center = None
     
     current_zones = set()
 
     if _last_pet_center is not None:
+        if not active_zones:
+            print("DEBUG: active_zones is empty!", flush=True)
         for zone_name, polygon_points in active_zones.items():
             pts = np.array([[int(p["x"] * width), int(p["y"] * height)] for p in polygon_points], np.int32)
             pts = pts.reshape((-1, 1, 2))
-
             is_inside = cv2.pointPolygonTest(pts, _last_pet_center, measureDist=False)
-
             if is_inside >= 0:
                 current_zones.add(zone_name)
-    
-    if len(current_zones) > 0 and current_pet_center is not None:
-        with open(file_path, "wb") as f:
-            f.write(image_bytes)
+        
+        # print(f"DEBUG: Current zones: {current_zones}", flush=True)
     
     entered = current_zones - _last_zones
+    if len(entered) > 0:
+        # Start or extend recording for 30 seconds
+        _recording_end_time = time.time() + 30
+        if _video_writer is None:
+            _current_video_path = f"replays/replay_{timestamp}.mp4"
+            raw_path = _current_video_path.replace(".mp4", "_raw.mp4")
+            # Write raw mp4v first, then convert with ffmpeg for web compatibility
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            _video_writer = cv2.VideoWriter(raw_path, fourcc, _fps, (width, height))
+            _video_writer.write(img)
+            print(f"Started recording: {_current_video_path}", flush=True)
+
+        # Save snapshot
+        file_path = f"captured_images/frame_{timestamp}.png"
+        with open(file_path, "wb") as f:
+            f.write(image_bytes)
+
     for zone in entered:
         print(f"Event: MOVEMENT DETECTED IN ZONE {zone}", flush=True)
         await log_event("zone_enter", zone_name=zone)
@@ -83,3 +124,4 @@ async def process_and_save_frame(image_bytes: bytes):
         await log_event("zone_exit", zone_name=zone)
 
     _last_zones = current_zones
+

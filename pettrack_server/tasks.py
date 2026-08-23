@@ -29,7 +29,35 @@ async def cleanup_old_images():
                     for file_path, _ in files[:len(files) - max_files]:
                         os.remove(file_path)
             except Exception as e:
-                print(f"Error in cleanup task: {e}")
+                print(f"Error in image cleanup task: {e}")
+        
+        # Cleanup replays
+        replays_path = "replays"
+        if os.path.exists(replays_path):
+            try:
+                files = []
+                for filename in os.listdir(replays_path):
+                    if filename.endswith(".mp4"):
+                        file_path = os.path.join(replays_path, filename)
+                        files.append((file_path, os.path.getmtime(file_path)))
+                
+                files.sort(key=lambda x: x[1])
+                current_time = time.time()
+                # Keep replays for 24 hours
+                cutoff_time = current_time - (24 * 60 * 60)
+                
+                for file_path, mtime in files[:]:
+                    if mtime < cutoff_time:
+                        os.remove(file_path)
+                        files.remove((file_path, mtime))
+                
+                max_replays = 100
+                if len(files) > max_replays:
+                    for file_path, _ in files[:len(files) - max_replays]:
+                        os.remove(file_path)
+            except Exception as e:
+                print(f"Error in replay cleanup task: {e}")
+
         await asyncio.sleep(600)
 
         

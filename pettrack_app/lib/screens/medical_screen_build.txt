@@ -1,0 +1,144 @@
+  Widget _buildDesktopHeader(AppLocalizations l10n) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          l10n.navMedical,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopColumnTitle(String title, IconData icon, VoidCallback onAdd) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: AppColors.primary, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        IconButton(
+          onPressed: onAdd,
+          icon: const Icon(Icons.add_circle, color: AppColors.primary),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 800) {
+          // Desktop Layout
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            body: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDesktopHeader(l10n),
+                  const SizedBox(height: 32),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left Column: Medications
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E2128),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildDesktopColumnTitle(l10n.medications, Icons.medical_services, () => _showAddMedicationDialog(l10n)),
+                                const SizedBox(height: 16),
+                                Expanded(child: _buildMedicationsTab(l10n)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        // Right Column: Vaccines
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E2128),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildDesktopColumnTitle(l10n.vaccines, Icons.vaccines, () => _showAddVaccineDialog(l10n)),
+                                const SizedBox(height: 16),
+                                Expanded(child: _buildVaccinesTab(l10n)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else {
+          // Mobile Layout (legacy)
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            appBar: TabBar(
+              controller: _tabController,
+              indicatorColor: AppColors.primary,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: Colors.grey,
+              tabs: [
+                Tab(icon: const Icon(Icons.medical_services), text: l10n.medications),
+                Tab(icon: const Icon(Icons.vaccines), text: l10n.vaccines),
+              ],
+            ),
+            body: TabBarView(
+              controller: _tabController,
+              children: [_buildMedicationsTab(l10n), _buildVaccinesTab(l10n)],
+            ),
+            floatingActionButton: FloatingActionButton(
+              heroTag: 'medical_fab',
+              backgroundColor: AppColors.primary,
+              onPressed: () {
+                if (_tabController.index == 0) {
+                  _showAddMedicationDialog(l10n);
+                } else {
+                  _showAddVaccineDialog(l10n);
+                }
+              },
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
+          );
+        }
+      }
+    );
+  }

@@ -88,8 +88,7 @@ async def receive_web_frame(request: Request, token: str = ""):
     update_latest_frame(data)
     
     # Broadcast to WebSocket clients
-    encrypted_data = fernet.encrypt(data)
-    asyncio.create_task(client_manager.broadcast_bytes(encrypted_data))
+    asyncio.create_task(client_manager.broadcast_bytes(data))
 
     monitor_state["online"] = True
     monitor_state["last_seen"] = time.time()
@@ -180,8 +179,7 @@ async def get_latest_frame():
         headers = {
             "Last-Modified": formatdate(latest_frame_info["timestamp"], usegmt=True)
         }
-        encrypted_data = fernet.encrypt(latest_frame_info["data"])
-        return Response(content=encrypted_data, media_type="application/octet-stream", headers=headers)
+        return Response(content=latest_frame_info["data"], media_type="image/png", headers=headers)
     
     folder = "captured_images"
     if not os.path.exists(folder):
@@ -194,11 +192,10 @@ async def get_latest_frame():
     latest = max(files, key=os.path.getmtime)
     with open(latest, "rb") as f:
         img_data = f.read()
-    encrypted_data = fernet.encrypt(img_data)
     headers = {
         "Last-Modified": formatdate(os.path.getmtime(latest), usegmt=True)
     }
-    return Response(content=encrypted_data, media_type="application/octet-stream", headers=headers)
+    return Response(content=img_data, media_type="image/png", headers=headers)
 
 
 @router.get("/api/frame/web")
@@ -224,3 +221,32 @@ async def get_web_frame():
         "Last-Modified": formatdate(os.path.getmtime(latest), usegmt=True)
     }
     return Response(content=img_data, media_type="image/jpeg", headers=headers)
+
+@router.get("/api/replays")
+async def list_replays():
+    folder = "replays"
+    if not os.path.exists(folder):
+        return {"replays": []}
+    
+    files = []
+    for filename in os.listdir(folder):
+        if filename.endswith(".mp4"):
+            file_path = os.path.join(folder, filename)
+            files.append({
+                "filename": filename,
+                "timestamp": int(os.path.getmtime(file_path)),
+                "size": os.path.getsize(file_path)
+            })
+    
+    # Sort newest first
+    files.sort(key=lambda x: x["timestamp"], reverse=True)
+    return {"replays": files}
+
+@router.get("/api/replays/{filename}")
+async def get_replay_video(filename: str):
+    folder = "replays"
+    file_path = os.path.join(folder, filename)
+    if not os.path.exists(file_path) or not file_path.endswith(".mp4"):
+        raise HTTPException(status_code=404, detail="Replay not found")
+    
+    return FileResponse(file_path, media_type="video/mp4")

@@ -5,11 +5,10 @@ echo "======================================"
 
 
 if [ ! -d "pettrack_server/static" ]; then
-    echo "[1/2] Building Web Dashboard..."
-    cd pettrack_web
-    npm install
-    npm run build
-    cp -r dist ../pettrack_server/static
+    echo "[1/2] Building Web Dashboard (Flutter)..."
+    cd pettrack_app
+    flutter build web
+    cp -r build/web ../pettrack_server/static
     cd ..
 fi
 
