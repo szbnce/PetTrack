@@ -9,4 +9,3 @@ services:
       - ./pettrack_server/replays:/app/replays
       - ./pettrack_server/captured_images:/app/captured_images
       - ./pettrack_server/pettrack.db:/app/pettrack.db
-      - ./pettrack_server/.env:/app/.env
