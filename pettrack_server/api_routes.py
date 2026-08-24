@@ -242,11 +242,62 @@ async def list_replays():
     files.sort(key=lambda x: x["timestamp"], reverse=True)
     return {"replays": files}
 
+import re
+from fastapi import Request
+from fastapi.responses import StreamingResponse
+
+def range_requests_response(request: Request, file_path: str, content_type: str):
+    file_size = os.stat(file_path).st_size
+    range_header = request.headers.get("range")
+
+    headers = {
+        "content-type": content_type,
+        "accept-ranges": "bytes",
+        "content-encoding": "identity",
+        "content-length": str(file_size),
+        "access-control-expose-headers": (
+            "content-type, accept-ranges, content-length, "
+            "content-range, content-encoding"
+        ),
+    }
+    start = 0
+    end = file_size - 1
+    status_code = 200
+
+    if range_header is not None:
+        range_match = re.match(r"bytes=(\d+)-(\d*)", range_header)
+        if range_match:
+            start = int(range_match.group(1))
+            end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
+            
+        size = end - start + 1
+        headers["content-length"] = str(size)
+        headers["content-range"] = f"bytes {start}-{end}/{file_size}"
+        status_code = 206
+
+    def send_bytes_range_requests(f_path: str, st: int, en: int):
+        with open(f_path, mode="rb") as f:
+            f.seek(st)
+            pos = st
+            while pos <= en:
+                read_size = min(1024 * 1024, en - pos + 1)
+                data = f.read(read_size)
+                if not data:
+                    break
+                pos += len(data)
+                yield data
+
+    return StreamingResponse(
+        send_bytes_range_requests(file_path, start, end),
+        headers=headers,
+        status_code=status_code,
+    )
+
 @router.get("/api/replays/{filename}")
-async def get_replay_video(filename: str):
+async def get_replay_video(filename: str, request: Request):
     folder = "replays"
     file_path = os.path.join(folder, filename)
     if not os.path.exists(file_path) or not file_path.endswith(".mp4"):
         raise HTTPException(status_code=404, detail="Replay not found")
     
-    return FileResponse(file_path, media_type="video/mp4")
+    return range_requests_response(request, file_path, "video/mp4")

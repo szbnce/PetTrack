@@ -230,7 +230,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     String getTitle() {
       switch (_selectedIndex) {
-        case 0: return l10n.navDashboard;
+        case 0: return l10n.appName;
         case 1: return l10n.navZones;
         case 2: return l10n.navMedical;
         case 3: return "Replays";

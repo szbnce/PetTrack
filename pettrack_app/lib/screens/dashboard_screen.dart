@@ -455,8 +455,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         left: 16,
                         child: Row(
                           children: [
-                            _buildBadge(l10n),
-                            const SizedBox(width: 8),
+                            if (isDesktop) ...[
+                              _buildBadge(l10n),
+                              const SizedBox(width: 8),
+                            ],
                             _buildChip(
                               _isCharging
                                   ? Icons.battery_charging_full
@@ -734,6 +736,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   l10n.lastSeen.toUpperCase(),
                                   const Color(0xFF122C2A), // Dark teal bg
                                   AppColors.primary,
+                                  showToday: false,
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -746,6 +749,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   l10n.mostSeen.toUpperCase(),
                                   const Color(0xFF2C241B), // Dark orange bg
                                   Colors.orange,
+                                  showToday: false,
                                 ),
                               ),
                             ],
@@ -857,6 +861,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           l10n.favoriteZone,
                           AppColors.surfaceVariant,
                           AppColors.primary,
+                          showToday: false,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -869,6 +874,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           l10n.lastSeen,
                           const Color(0xFFFFDBC9),
                           AppColors.secondary,
+                          showToday: false,
                         ),
                       ),
                     ],
@@ -941,8 +947,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
+            style: const TextStyle(
+              color: Colors.white,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -959,8 +965,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String unit,
     String label,
     Color bgColor,
-    Color iconColor,
-  ) {
+    Color iconColor, {
+    bool showToday = true,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -989,14 +996,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: Icon(icon, color: iconColor, size: 20),
               ),
-              Text(
-                l10n.today,
-                style: const TextStyle(
-                  color: AppColors.outline,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+              if (showToday)
+                Text(
+                  l10n.today,
+                  style: const TextStyle(
+                    color: AppColors.outline,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 16),

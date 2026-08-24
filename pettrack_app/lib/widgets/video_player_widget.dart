@@ -25,7 +25,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     super.initState();
     _controller = VideoPlayerController.networkUrl(
       Uri.parse(widget.videoUrl),
-      httpHeaders: {'x-api-token': widget.token},
     )..initialize().then((_) {
         setState(() {
           _initialized = true;
