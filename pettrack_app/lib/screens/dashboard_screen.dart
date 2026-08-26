@@ -597,7 +597,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildActivityGraph() {
+  Widget _buildActivityGraph(AppLocalizations l10n) {
     if (_activities.isEmpty) return const SizedBox.shrink();
 
     // Count zone visits
@@ -643,13 +643,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Zone Visits (Recent)",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Zone Visits", // Or l10n.activities if available, hardcoding for safety as in original
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Icon(Icons.pie_chart, size: 18, color: Colors.white54),
+            ],
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -868,35 +874,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           _buildCameraCard(l10n, true),
                           const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildStatCard(
-                                  context,
-                                  Icons.access_time,
-                                  _getLastSeen(l10n),
-                                  "",
-                                  l10n.lastSeen.toUpperCase(),
-                                  const Color(0xFF122C2A), // Dark teal bg
-                                  AppColors.primary,
-                                  showToday: false,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildStatCard(
-                                  context,
-                                  Icons.brightness_3,
-                                  _getFavoriteZone(),
-                                  "",
-                                  l10n.mostSeen.toUpperCase(),
-                                  const Color(0xFF2C241B), // Dark orange bg
-                                  Colors.orange,
-                                  showToday: false,
-                                ),
-                              ),
-                            ],
-                          ),
+                          // Stats removed to unify design
                         ],
                       ),
                     ),
@@ -908,7 +886,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           _buildProfileCard(l10n),
                           const SizedBox(height: 24),
-                          _buildActivityGraph(),
+                          _buildActivityGraph(l10n),
                           _buildEventLog(l10n),
                         ],
                       ),
@@ -992,40 +970,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   
                   _buildCameraCard(l10n, false),
                   const SizedBox(height: 24),
-
-                  // Stats row (Mock data)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          Icons.favorite,
-                          _getFavoriteZone(),
-                          "",
-                          l10n.favoriteZone,
-                          AppColors.surfaceVariant,
-                          AppColors.primary,
-                          showToday: false,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          Icons.access_time,
-                          _getLastSeen(l10n),
-                          "",
-                          l10n.lastSeen,
-                          const Color(0xFFFFDBC9),
-                          AppColors.secondary,
-                          showToday: false,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
                   
-                  _buildActivityGraph(),
+                  _buildActivityGraph(l10n),
 
                   // Activities Timeline
                   Text(
