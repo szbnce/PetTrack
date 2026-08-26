@@ -49,6 +49,17 @@ async def process_and_save_frame(image_bytes: bytes):
     # For motion detection, we downscale
     small_img = cv2.resize(img, (320, 240))
     gray = cv2.cvtColor(small_img, cv2.COLOR_BGR2GRAY)
+    
+    # Check if the frame is too dark (low light condition)
+    mean_brightness = cv2.mean(gray)[0]
+    if mean_brightness < 25:
+        # Too dark, skip motion detection
+        if _last_pet_center is not None:
+            if time.time() - globals().get('_last_motion_time', 0) > 5.0:
+                print("DEBUG: Motion timed out in dark mode, clearing _last_pet_center", flush=True)
+                _last_pet_center = None
+        return
+
     gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
     fg_mask = _bg_subtractor.apply(gray)
@@ -61,7 +72,7 @@ async def process_and_save_frame(image_bytes: bytes):
 
     for contour in contours:
         area = cv2.contourArea(contour)
-        if area > 100 and area > largest_area:
+        if area > 800 and area > largest_area:
             largest_area = area
             (x, y, w, h) = cv2.boundingRect(contour)
             scale_x = width / 320

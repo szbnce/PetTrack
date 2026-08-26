@@ -55,6 +55,10 @@ dependencies:
   web_socket_channel: ^3.0.3
   flutter_local_notifications_web: ^1.0.0
   video_player: ^2.14.0
+  url_launcher: ^6.3.2
+  fl_chart: ^1.2.0
+  share_plus: ^13.3.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

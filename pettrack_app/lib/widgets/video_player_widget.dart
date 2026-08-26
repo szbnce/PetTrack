@@ -23,8 +23,14 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   void initState() {
     super.initState();
+    final uri = Uri.parse(widget.videoUrl);
+    final uriWithToken = uri.replace(queryParameters: {
+      ...uri.queryParameters,
+      'token': widget.token,
+    });
+
     _controller = VideoPlayerController.networkUrl(
-      Uri.parse(widget.videoUrl),
+      uriWithToken,
     )..initialize().then((_) {
         setState(() {
           _initialized = true;

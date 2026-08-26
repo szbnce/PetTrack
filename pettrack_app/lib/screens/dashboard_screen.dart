@@ -1,3 +1,7 @@
+import 'package:fl_chart/fl_chart.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -124,6 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 setState(() {
                   _currentUiImage?.dispose();
                   _currentUiImage = img;
+                  _frameTimestamp = DateTime.now().toUtc();
                   _hasCameraError = false;
                   _isServerOnline = true;
                 });
@@ -214,6 +219,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _startPolling() {
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (_) {
+      if (mounted) setState(() {});
       _fetchActivity();
       _fetchStatus();
     });
@@ -255,13 +261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (lastAlert == null ||
                 now.difference(lastAlert).inSeconds >= 60) {
               _lastZoneAlerts[zoneName] = now;
-              NotificationService().showNotification(
-                id: 2,
-                title: l10n.alertsTitle,
-                body: isEnter
-                    ? l10n.zoneEntered(_displayPetName, zoneName)
-                    : l10n.zoneLeft(_displayPetName, zoneName),
-              );
+              debugPrint("Alert: ${isEnter ? 'Enter' : 'Left'} $zoneName");
             }
           }
           setState(() => _activities = newEvents);
@@ -294,11 +294,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 !_hasAlertedBattery) {
               _hasAlertedBattery = true;
               final l10n = AppLocalizations.of(context)!;
-              NotificationService().showNotification(
-                id: 1,
-                title: l10n.batteryLowTitle,
-                body: l10n.batteryLowBody(newBat),
-              );
+              debugPrint("Battery Low: $newBat");
             }
             if (newBat > _batteryThreshold || _isCharging) {
               _hasAlertedBattery = false;
@@ -438,9 +434,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         )
                       else if (_currentUiImage != null)
-                        RawImage(
-                          image: _currentUiImage!,
-                          fit: BoxFit.contain,
+                        InteractiveViewer(
+                          minScale: 1.0,
+                          maxScale: 4.0,
+                          child: RawImage(
+                            image: _currentUiImage!,
+                            fit: BoxFit.contain,
+                          ),
                         )
                       else
                         const Center(
@@ -473,6 +473,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                       ),
+                      
+                      // Snapshot Button
+                      if (_currentUiImage != null)
+                        Positioned(
+                          bottom: 16,
+                          right: 16,
+                          child: FloatingActionButton.small(
+                            onPressed: _takeSnapshot,
+                            backgroundColor: Colors.black.withValues(alpha: 0.5),
+                            child: const Icon(Icons.camera_alt, color: Colors.white),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -575,6 +587,117 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 12),
                     ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityGraph() {
+    if (_activities.isEmpty) return const SizedBox.shrink();
+
+    // Count zone visits
+    final Map<String, int> zoneVisits = {};
+    for (var ev in _activities) {
+      if (ev['event_type'] == 'zone_enter') {
+        final name = ev['zone_name'] ?? 'Unknown';
+        zoneVisits[name] = (zoneVisits[name] ?? 0) + 1;
+      }
+    }
+
+    if (zoneVisits.isEmpty) return const SizedBox.shrink();
+
+    final List<Color> colors = [
+      Colors.blueAccent,
+      Colors.greenAccent,
+      Colors.orangeAccent,
+      Colors.purpleAccent,
+      Colors.redAccent,
+    ];
+
+    int colorIndex = 0;
+    final pieSections = zoneVisits.entries.map((e) {
+      final color = colors[colorIndex % colors.length];
+      colorIndex++;
+      return PieChartSectionData(
+        value: e.value.toDouble(),
+        title: '${e.value}',
+        color: color,
+        radius: 40,
+        titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+      );
+    }).toList();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2128),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Zone Visits (Recent)",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 150,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: PieChart(
+                    PieChartData(
+                      sections: pieSections,
+                      centerSpaceRadius: 30,
+                      sectionsSpace: 2,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: zoneVisits.keys.toList().asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final name = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: colors[idx % colors.length],
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                name,
+                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
               ],
@@ -697,6 +820,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Future<void> _takeSnapshot() async {
+    if (_currentUiImage == null) return;
+    try {
+      final byteData = await _currentUiImage!.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+      final buffer = byteData.buffer.asUint8List();
+
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/pet_snapshot_${DateTime.now().millisecondsSinceEpoch}.png').create();
+      await file.writeAsBytes(buffer);
+
+      final result = await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Look what my pet is doing!',
+      );
+    } catch (e) {
+      debugPrint('Snapshot error: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -765,6 +908,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           _buildProfileCard(l10n),
                           const SizedBox(height: 24),
+                          _buildActivityGraph(),
                           _buildEventLog(l10n),
                         ],
                       ),
@@ -880,6 +1024,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                   const SizedBox(height: 32),
+                  
+                  _buildActivityGraph(),
 
                   // Activities Timeline
                   Text(

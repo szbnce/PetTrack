@@ -300,4 +300,6 @@ async def get_replay_video(filename: str, request: Request):
     if not os.path.exists(file_path) or not file_path.endswith(".mp4"):
         raise HTTPException(status_code=404, detail="Replay not found")
     
-    return range_requests_response(request, file_path, "video/mp4")
+    if request.headers.get("range"):
+        return range_requests_response(request, file_path, "video/mp4")
+    return FileResponse(file_path, media_type="video/mp4")

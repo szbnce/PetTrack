@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pettrack_app/l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/colors.dart';
 import '../widgets/video_player_widget.dart';
 
@@ -73,9 +74,40 @@ class _ReplaysScreenState extends State<ReplaysScreen> {
         insetPadding: const EdgeInsets.all(16),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: Container(
-            color: Colors.black,
-            child: VideoPlayerWidget(videoUrl: url, token: widget.token),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Container(
+                  color: Colors.black,
+                  child: VideoPlayerWidget(videoUrl: url, token: widget.token),
+                ),
+              ),
+              Container(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                      label: const Text('Close'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () async {
+                        final uri = Uri.parse('$url?token=${widget.token}');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: const Icon(Icons.open_in_browser),
+                      label: const Text('Open / Download'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
