@@ -60,7 +60,12 @@ async def startup_event():
             web_pin = f"{random.randint(1000, 9999):04d}"
             if web_pin != "8068":
                 break
-        set_key(".env", "PETTRACK_WEB_PIN", web_pin)
+        try:
+            set_key(".env", "PETTRACK_WEB_PIN", web_pin)
+        except OSError:
+            # Fallback for Docker bind mounts where os.replace fails
+            with open(".env", "a") as f:
+                f.write(f"\nPETTRACK_WEB_PIN='{web_pin}'\n")
         os.environ["PETTRACK_WEB_PIN"] = web_pin
 
     print("\n" + "="*55)
