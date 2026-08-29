@@ -23,7 +23,12 @@ SECRET_TOKEN = os.getenv("PETTRACK_SECRET")
 if not SECRET_TOKEN:
     print("No secret found! Generating a new ultra-secure 64-char token...")
     new_secret = secrets.token_urlsafe(48)
-    set_key(".env", "PETTRACK_SECRET", new_secret)
+    try:
+        set_key(".env", "PETTRACK_SECRET", new_secret)
+    except OSError:
+        # Fallback for Docker bind mounts where os.replace fails
+        with open(".env", "a") as f:
+            f.write(f"\nPETTRACK_SECRET='{new_secret}'\n")
     SECRET_TOKEN = new_secret
 
 def get_fernet_key(secret: str) -> bytes:
