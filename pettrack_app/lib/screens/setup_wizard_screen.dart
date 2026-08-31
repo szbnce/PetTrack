@@ -53,51 +53,51 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     }
   }
   
+  Future<void> _startDemoMode(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final bool? wantDemo = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.demoModeTitle),
+        content: Text(l10n.demoModePrompt),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+    
+    if (wantDemo == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('server_ip', 'demo_ip');
+      await prefs.setString('jwt_token', 'demo_token');
+      await prefs.setString('pet_name', 'Demo Pet');
+      await prefs.setString('app_mode', 'client');
+      await _secureStorage.write(key: 'demo_pin', value: '8068');
+      
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen(
+          serverIp: 'demo_ip',
+          token: 'demo_token',
+          petName: 'Demo Pet',
+        )),
+      );
+    }
+  }
+
   Future<void> _handlePinSubmit() async {
     final pin = _pinController.text.trim();
     final ipInput = _ipController.text.trim();
     if (pin.isEmpty || ipInput.isEmpty) return;
     
-    if (pin == '8068') {
-      final l10n = AppLocalizations.of(context)!;
-      final bool? wantDemo = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(l10n.demoModeTitle),
-          content: Text(l10n.demoModePrompt),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Yes'),
-            ),
-          ],
-        ),
-      );
-      
-      if (wantDemo == true) {
-        // Enter demo mode
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('server_ip', 'demo_ip');
-        await prefs.setString('jwt_token', 'demo_token');
-        await prefs.setString('pet_name', 'Demo Pet');
-        await prefs.setString('app_mode', 'client');
-        await _secureStorage.write(key: 'demo_pin', value: '8068');
-        
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainNavigationScreen(
-            serverIp: 'demo_ip',
-            token: 'demo_token',
-            petName: 'Demo Pet',
-          )),
-        );
-        return;
-      }
-    }
+    // Demo logic moved to _startDemoMode()
     
     String targetIp = ipInput;
     if (!targetIp.startsWith('http://') && !targetIp.startsWith('https://')) {
@@ -421,7 +421,16 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                   onPressed: _handlePinSubmit,
                   child: const Text('Submit PIN'),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                TextButton.icon(
+                  onPressed: () => _startDemoMode(context),
+                  icon: const Icon(Icons.play_circle_fill),
+                  label: const Text('Demo Mode'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.orange,
+                  ),
+                ),
+                const SizedBox(height: 16),
                 const Text('OR'),
               ],
             ),

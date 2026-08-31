@@ -56,53 +56,54 @@ class _MonitorSetupScreenState extends State<MonitorSetupScreen> {
     }
   }
 
+  Future<void> _startDemoMode(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final bool? wantDemo = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.demoModeTitle),
+        content: Text(l10n.demoModePrompt),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+
+    if (wantDemo == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('server_ip', 'demo_ip');
+      await prefs.setString('server_token', 'demo_token');
+      await prefs.setString('client_id', 'demo_client');
+      await prefs.setString('app_mode', 'monitor');
+      await _secureStorage.write(key: 'demo_pin', value: '8068');
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MonitorScreen(
+            serverIp: 'demo_ip',
+            token: 'demo_token',
+            clientId: 'demo_client',
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _handlePinSubmit() async {
     final pin = _pinController.text.trim();
     final ipInput = _ipController.text.trim();
     if (pin.isEmpty || ipInput.isEmpty) return;
 
-    if (pin == '8068') {
-      final l10n = AppLocalizations.of(context)!;
-      final bool? wantDemo = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(l10n.demoModeTitle),
-          content: Text(l10n.demoModePrompt),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Yes'),
-            ),
-          ],
-        ),
-      );
-
-      if (wantDemo == true) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('server_ip', 'demo_ip');
-        await prefs.setString('server_token', 'demo_token');
-        await prefs.setString('client_id', 'demo_client');
-        await prefs.setString('app_mode', 'monitor');
-        await _secureStorage.write(key: 'demo_pin', value: '8068');
-
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MonitorScreen(
-              serverIp: 'demo_ip',
-              token: 'demo_token',
-              clientId: 'demo_client',
-            ),
-          ),
-        );
-        return;
-      }
-    }
+    // Demo logic moved to _startDemoMode()
     
     String targetIp = ipInput;
     if (!targetIp.startsWith('http://') && !targetIp.startsWith('https://')) {
@@ -243,6 +244,15 @@ class _MonitorSetupScreenState extends State<MonitorSetupScreen> {
                                 child: const Text('Submit'),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 10),
+                          TextButton.icon(
+                            onPressed: () => _startDemoMode(context),
+                            icon: const Icon(Icons.play_circle_fill),
+                            label: const Text('Demo Mode'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                            ),
                           ),
                         ],
                       ),

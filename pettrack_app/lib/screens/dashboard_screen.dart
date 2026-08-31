@@ -612,11 +612,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (zoneVisits.isEmpty) return const SizedBox.shrink();
 
     final List<Color> colors = [
-      Colors.blueAccent,
-      Colors.greenAccent,
-      Colors.orangeAccent,
-      Colors.purpleAccent,
-      Colors.redAccent,
+      AppColors.primary,
+      AppColors.secondary,
+      AppColors.warning,
+      AppColors.success,
+      AppColors.outline,
     ];
 
     int colorIndex = 0;
