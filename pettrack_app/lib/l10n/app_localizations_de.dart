@@ -78,6 +78,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get zoneVisits => 'Zone Visits';
+
+  @override
   String zoneLeft(String petName, String zone) {
     return '$petName left $zone';
   }

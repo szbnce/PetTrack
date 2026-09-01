@@ -728,7 +728,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Zone Visits", // Or l10n.activities if available, hardcoding for safety as in original
+                l10n.zoneVisits,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -743,16 +743,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             height: 150,
             child: Row(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: PieChart(
-                    PieChartData(
-                      sections: pieSections,
-                      centerSpaceRadius: 30,
-                      sectionsSpace: 2,
-                    ),
-                  ),
-                ),
                 Expanded(
                   flex: 3,
                   child: Column(
@@ -789,6 +779,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       );
                     }).toList(),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: PieChart(
+                    PieChartData(
+                      sections: pieSections,
+                      centerSpaceRadius: 30,
+                      sectionsSpace: 2,
+                    ),
                   ),
                 ),
               ],

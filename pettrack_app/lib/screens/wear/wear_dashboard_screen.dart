@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WearDashboardScreen extends StatefulWidget {
   final String serverIp;
@@ -23,17 +26,56 @@ class _WearDashboardScreenState extends State<WearDashboardScreen> {
   String _currentZone = '--';
   bool _isLoading = true;
   Timer? _timer;
+  
+  WebSocketChannel? _clientChannel;
+  ui.Image? _currentUiImage;
+  DateTime? _lastFrameTime;
 
   @override
   void initState() {
     super.initState();
     _fetchData();
     _timer = Timer.periodic(const Duration(seconds: 5), (_) => _fetchData());
+    _connectWebSocket();
+  }
+
+  void _connectWebSocket() {
+    try {
+      final wsUrl = '${widget.serverIp.replaceAll("http", "ws")}/ws/client?token=${widget.token}';
+      _clientChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      _clientChannel!.stream.listen((data) {
+        if (!mounted) return;
+        
+        // Frissítés 5 másodpercenként (throttling)
+        final now = DateTime.now();
+        if (_lastFrameTime != null && now.difference(_lastFrameTime!).inSeconds < 5) {
+            return;
+        }
+
+        try {
+          if (data is String) return;
+          final newBytes = data is Uint8List ? data : Uint8List.fromList(data as List<int>);
+          ui.decodeImageFromList(newBytes, (ui.Image img) {
+            if (mounted) {
+              setState(() {
+                _currentUiImage?.dispose();
+                _currentUiImage = img;
+                _lastFrameTime = now;
+              });
+            } else {
+              img.dispose();
+            }
+          });
+        } catch (_) {}
+      });
+    } catch (_) {}
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _clientChannel?.sink.close();
+    _currentUiImage?.dispose();
     super.dispose();
   }
 
@@ -76,10 +118,13 @@ class _WearDashboardScreenState extends State<WearDashboardScreen> {
 
       if (actResp.statusCode == 200 && mounted) {
         final data = jsonDecode(actResp.body);
-        if (data.isNotEmpty) {
-          setState(() {
-            _currentZone = data[0]['zone_name'] ?? '--';
-          });
+        if (data['events'] != null) {
+          final events = data['events'] as List;
+          if (events.isNotEmpty) {
+            setState(() {
+              _currentZone = events[0]['zone_name'] ?? '--';
+            });
+          }
         }
       }
     } catch (_) {
@@ -112,6 +157,32 @@ class _WearDashboardScreenState extends State<WearDashboardScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
+
+                  // Live View
+                  if (_currentUiImage != null)
+                    Container(
+                      width: double.infinity,
+                      height: 120, // Watch height
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey[800]!),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: InteractiveViewer(
+                          panEnabled: true,
+                          scaleEnabled: true,
+                          minScale: 1.0,
+                          maxScale: 4.0,
+                          child: RawImage(
+                            image: _currentUiImage!,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
 
                   // Battery Card
                   Container(
@@ -170,7 +241,7 @@ class _WearDashboardScreenState extends State<WearDashboardScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

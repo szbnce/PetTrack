@@ -192,27 +192,6 @@ class _BootScreenState extends State<BootScreen> {
 
     if (!mounted) return;
 
-    if (mode == null) {
-      if (widget.isWatch) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const WearSetupScreen()),
-        );
-        return;
-      }
-
-      // First launch
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const LanguageScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      );
-      return;
-    }
-
     if (widget.isWatch) {
       final ip = prefs.getString('server_ip');
       final token = prefs.getString('api_token');
@@ -227,6 +206,20 @@ class _BootScreenState extends State<BootScreen> {
           MaterialPageRoute(builder: (_) => const WearSetupScreen()),
         );
       }
+      return;
+    }
+
+    if (mode == null) {
+      // First launch
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const LanguageScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      );
       return;
     }
 

@@ -78,6 +78,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get zoneVisits => 'Zone Visits';
+
+  @override
   String zoneLeft(String petName, String zone) {
     return '$petName kilépett a(z) $zone területről';
   }

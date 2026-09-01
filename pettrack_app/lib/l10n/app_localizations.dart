@@ -234,6 +234,12 @@ abstract class AppLocalizations {
   /// **'{petName} entered {zone}'**
   String zoneEntered(String petName, String zone);
 
+  /// No description provided for @zoneVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone Visits'**
+  String get zoneVisits;
+
   /// No description provided for @zoneLeft.
   ///
   /// In en, this message translates to:
