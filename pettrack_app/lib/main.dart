@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:pettrack_app/l10n/app_localizations.dart';
 import 'package:camera/camera.dart';
+import 'dart:io' show Platform;
+import 'package:device_info_plus/device_info_plus.dart';
 
 import 'theme/app_theme.dart';
 import 'screens/language_screen.dart';
@@ -12,6 +14,9 @@ import 'screens/main_navigation.dart';
 import 'screens/setup_wizard_screen.dart';
 import 'screens/monitor_setup_screen.dart';
 import 'screens/monitor_screen.dart';
+import 'screens/wear/wear_setup_screen.dart';
+import 'screens/wear/wear_dashboard_screen.dart';
+
 
 late List<CameraDescription> _cameras;
 List<CameraDescription> get cameras => _cameras;
@@ -19,7 +24,8 @@ List<CameraDescription> get cameras => _cameras;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   PaintingBinding.instance.imageCache.maximumSize = 50;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 20 * 1024 * 1024; // 20 MB
+  PaintingBinding.instance.imageCache.maximumSizeBytes =
+      20 * 1024 * 1024; // 20 MB
 
   try {
     _cameras = await availableCameras();
@@ -27,7 +33,7 @@ void main() async {
     debugPrint('No cameras found: $e');
     _cameras = [];
   }
-  
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -50,10 +56,22 @@ void main() async {
       initialThemeMode = ThemeMode.system;
   }
 
+  bool isWatch = false;
+  if (Platform.isAndroid) {
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      isWatch = androidInfo.systemFeatures.contains(
+        'android.hardware.type.watch',
+      );
+    } catch (_) {}
+  }
+
   runApp(
     PetTrackApp(
       initialLocale: savedLocale,
       initialThemeMode: initialThemeMode,
+      isWatch: isWatch,
     ),
   );
 }
@@ -61,23 +79,29 @@ void main() async {
 class PetTrackApp extends StatefulWidget {
   final String? initialLocale;
   final ThemeMode initialThemeMode;
+  final bool isWatch;
 
-  static final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
+  static final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(
+    ThemeMode.system,
+  );
 
   const PetTrackApp({
     super.key,
     this.initialLocale,
     this.initialThemeMode = ThemeMode.system,
+    this.isWatch = false,
   });
 
   static void setLocale(BuildContext context, Locale newLocale) {
-    _PetTrackAppState? state = context.findAncestorStateOfType<_PetTrackAppState>();
+    _PetTrackAppState? state = context
+        .findAncestorStateOfType<_PetTrackAppState>();
     state?.setLocale(newLocale);
   }
 
   static void setThemeMode(BuildContext context, ThemeMode mode) {
     themeNotifier.value = mode;
-    _PetTrackAppState? state = context.findAncestorStateOfType<_PetTrackAppState>();
+    _PetTrackAppState? state = context
+        .findAncestorStateOfType<_PetTrackAppState>();
     state?.setThemeMode(mode);
   }
 
@@ -138,7 +162,7 @@ class _PetTrackAppState extends State<PetTrackApp> {
             Locale('ko'),
           ],
           locale: _locale,
-          home: const BootScreen(),
+          home: BootScreen(isWatch: widget.isWatch),
         );
       },
     );
@@ -146,7 +170,8 @@ class _PetTrackAppState extends State<PetTrackApp> {
 }
 
 class BootScreen extends StatefulWidget {
-  const BootScreen({super.key});
+  final bool isWatch;
+  const BootScreen({super.key, this.isWatch = false});
 
   @override
   State<BootScreen> createState() => _BootScreenState();
@@ -162,21 +187,46 @@ class _BootScreenState extends State<BootScreen> {
   Future<void> _checkSetup() async {
     final prefs = await SharedPreferences.getInstance();
     final mode = prefs.getString('app_mode');
-    
+
     await Future.delayed(const Duration(milliseconds: 800));
-    
+
     if (!mounted) return;
 
     if (mode == null) {
+      if (widget.isWatch) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const WearSetupScreen()),
+        );
+        return;
+      }
+
       // First launch
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const LanguageScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const LanguageScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
         ),
       );
+      return;
+    }
+
+    if (widget.isWatch) {
+      final ip = prefs.getString('server_ip');
+      final token = prefs.getString('api_token');
+      if (ip != null && ip.isNotEmpty && token != null && token.isNotEmpty) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => WearDashboardScreen(serverIp: ip, token: token),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const WearSetupScreen()),
+        );
+      }
       return;
     }
 
@@ -188,23 +238,27 @@ class _BootScreenState extends State<BootScreen> {
       if (ip != null && ip.isNotEmpty && token != null && token.isNotEmpty) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => MainNavigationScreen(
-              serverIp: ip,
-              token: token,
-              petName: petName,
-            ),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                MainNavigationScreen(
+                  serverIp: ip,
+                  token: token,
+                  petName: petName,
+                ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
           ),
         );
       } else {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const SetupWizardScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const SetupWizardScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
           ),
         );
       }
@@ -216,23 +270,23 @@ class _BootScreenState extends State<BootScreen> {
       if (ip != null && ip.isNotEmpty && token != null && token.isNotEmpty) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => MonitorScreen(
-              serverIp: ip,
-              token: token,
-              clientId: clientId,
-            ),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                MonitorScreen(serverIp: ip, token: token, clientId: clientId),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
           ),
         );
       } else {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const MonitorSetupScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const MonitorSetupScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
           ),
         );
       }

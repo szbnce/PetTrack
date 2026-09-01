@@ -10,11 +10,7 @@ class ReplaysScreen extends StatefulWidget {
   final String serverIp;
   final String token;
 
-  const ReplaysScreen({
-    super.key,
-    required this.serverIp,
-    required this.token,
-  });
+  const ReplaysScreen({super.key, required this.serverIp, required this.token});
 
   @override
   State<ReplaysScreen> createState() => _ReplaysScreenState();
@@ -98,7 +94,10 @@ class _ReplaysScreenState extends State<ReplaysScreen> {
                       onPressed: () async {
                         final uri = Uri.parse('$url?token=${widget.token}');
                         if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
                         }
                       },
                       icon: const Icon(Icons.open_in_browser),
@@ -143,7 +142,11 @@ class _ReplaysScreenState extends State<ReplaysScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.videocam_off_outlined, size: 64, color: Colors.white24),
+            const Icon(
+              Icons.videocam_off_outlined,
+              size: 64,
+              color: Colors.white24,
+            ),
             const SizedBox(height: 16),
             const Text(
               "No replays recorded yet.",
@@ -164,8 +167,11 @@ class _ReplaysScreenState extends State<ReplaysScreen> {
         itemCount: _replays.length,
         itemBuilder: (context, index) {
           final replay = _replays[index];
-          final date = DateTime.fromMillisecondsSinceEpoch(replay['timestamp'] * 1000);
-          final dateString = "${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+          final date = DateTime.fromMillisecondsSinceEpoch(
+            replay['timestamp'] * 1000,
+          );
+          final dateString =
+              "${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
           final sizeMb = (replay['size'] / (1024 * 1024)).toStringAsFixed(1);
 
           return InkWell(
@@ -173,22 +179,33 @@ class _ReplaysScreenState extends State<ReplaysScreen> {
             borderRadius: BorderRadius.circular(12),
             child: Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+                border: Border.all(
+                  color: AppColors.outline.withValues(alpha: 0.1),
+                ),
               ),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   const Center(
-                    child: Icon(Icons.play_circle_outline, size: 48, color: AppColors.primary),
+                    child: Icon(
+                      Icons.play_circle_outline,
+                      size: 48,
+                      color: AppColors.primary,
+                    ),
                   ),
                   Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.7),
                         borderRadius: const BorderRadius.only(
@@ -201,11 +218,18 @@ class _ReplaysScreenState extends State<ReplaysScreen> {
                         children: [
                           Text(
                             dateString,
-                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
                             "${sizeMb}MB",
-                            style: const TextStyle(color: Colors.white54, fontSize: 10),
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 10,
+                            ),
                           ),
                         ],
                       ),

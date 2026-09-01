@@ -33,6 +33,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   ui.Image? _currentUiImage;
+  double _cameraAspectRatio = 16 / 9;
   String? _secretToken;
   WebSocketChannel? _clientChannel;
   Timer? _timer;
@@ -40,6 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> _activities = [];
   final Map<String, DateTime> _lastZoneAlerts = {};
   Uint8List? _profilePicBytes;
+  List<dynamic> _zonesCache = [];
   String _petType = 'rabbit';
   String _petName = '';
   String? _monitorId;
@@ -96,11 +98,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (widget.serverIp.contains('demo_ip')) {
       _isServerOnline = true;
       _activities = [
-        {"event_type": "zone_enter", "timestamp": DateTime.now().millisecondsSinceEpoch ~/ 1000, "zone_name": "Alomtálca"},
-        {"event_type": "zone_left", "timestamp": DateTime.now().subtract(const Duration(minutes: 5)).millisecondsSinceEpoch ~/ 1000, "zone_name": "Játszótér"},
-        {"event_type": "zone_enter", "timestamp": DateTime.now().subtract(const Duration(minutes: 15)).millisecondsSinceEpoch ~/ 1000, "zone_name": "Etető"},
+        {
+          "event_type": "zone_enter",
+          "timestamp": DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          "zone_name": "Alomtálca",
+        },
+        {
+          "event_type": "zone_left",
+          "timestamp":
+              DateTime.now()
+                  .subtract(const Duration(minutes: 5))
+                  .millisecondsSinceEpoch ~/
+              1000,
+          "zone_name": "Játszótér",
+        },
+        {
+          "event_type": "zone_enter",
+          "timestamp":
+              DateTime.now()
+                  .subtract(const Duration(minutes: 15))
+                  .millisecondsSinceEpoch ~/
+              1000,
+          "zone_name": "Etető",
+        },
+      ];
+      _zonesCache = [
+        {"name": "Alomtálca", "type": "toilet"},
+        {"name": "Játszótér", "type": "play"},
+        {"name": "Etető", "type": "food"},
       ];
     } else {
+      _fetchZones();
       _startPolling();
       _connectClientSocket();
     }
@@ -113,19 +141,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     try {
-      final wsUrl = '${widget.serverIp.replaceAll("http", "ws")}/ws/client?token=${widget.token}';
+      final wsUrl =
+          '${widget.serverIp.replaceAll("http", "ws")}/ws/client?token=${widget.token}';
       _clientChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
       _clientChannel!.stream.listen(
         (data) {
           if (!mounted || _secretToken == null) return;
           try {
             if (data is String) return;
-            final newBytes = data is Uint8List ? data : Uint8List.fromList(data as List<int>);
+            final newBytes = data is Uint8List
+                ? data
+                : Uint8List.fromList(data as List<int>);
             ui.decodeImageFromList(newBytes, (ui.Image img) {
               if (mounted) {
                 setState(() {
                   _currentUiImage?.dispose();
                   _currentUiImage = img;
+                  if (img.width > 0 && img.height > 0) {
+                    _cameraAspectRatio = img.width / img.height;
+                  }
                   _frameTimestamp = DateTime.now().toUtc();
                   _hasCameraError = false;
                   _isServerOnline = true;
@@ -196,7 +230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (response.statusCode == 200 && mounted) {
         final data = jsonDecode(response.body);
         final prefs = await SharedPreferences.getInstance();
-        
+
         setState(() {
           if (data['name'] != null && data['name'] != "Unknown") {
             _petName = data['name'];
@@ -210,6 +244,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _profilePicBytes = base64Decode(data['profile_pic']);
             prefs.setString('profile_pic', data['profile_pic']);
           }
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _fetchZones() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('${widget.serverIp}/api/zones'),
+            headers: {'x-api-token': widget.token},
+          )
+          .timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 200 && mounted) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _zonesCache = data['zones'] as List<dynamic>;
         });
       }
     } catch (_) {}
@@ -365,7 +417,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 widget.serverIp.contains('demo_ip') ? "Online" : l10n.liveVideo,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white),
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineMedium?.copyWith(color: Colors.white),
               ),
               _buildBadge(l10n),
             ],
@@ -377,116 +431,127 @@ class _DashboardScreenState extends State<DashboardScreen> {
             maxHeight: MediaQuery.of(context).size.height * 0.65,
           ),
           child: AspectRatio(
-            aspectRatio: 4 / 3,
+            aspectRatio: _cameraAspectRatio,
             child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF15181E), // Dark background matching the image
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
-          ),
-          child: widget.serverIp.contains('demo_ip')
-              ? Center(
-                  child: Text(
-                    l10n.demoLivePreview,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (!_isServerOnline)
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.cloud_off,
-                                size: 64,
-                                color: Colors.redAccent,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.serverUnreachableTitle,
-                                style: const TextStyle(
-                                  color: Colors.redAccent,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                l10n.serverUnreachableDesc,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 14,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        )
-                      else if (_currentUiImage != null)
-                        InteractiveViewer(
-                          minScale: 1.0,
-                          maxScale: 4.0,
-                          child: RawImage(
-                            image: _currentUiImage!,
-                            fit: BoxFit.contain,
-                          ),
-                        )
-                      else
-                        const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.primary,
-                          ),
-                        ),
-  
-                      // Overlay Chips
-                      Positioned(
-                        top: 16,
-                        left: 16,
-                        child: Row(
-                          children: [
-                            if (isDesktop) ...[
-                              _buildBadge(l10n),
-                              const SizedBox(width: 8),
-                            ],
-                            _buildChip(
-                              _isCharging
-                                  ? Icons.battery_charging_full
-                                  : Icons.battery_full,
-                              "$_batteryLevel%",
-                            ),
-                            const SizedBox(width: 8),
-                            _buildChip(
-                              Icons.wifi,
-                              _monitorId ?? l10n.searchingStatus,
-                            ),
-                          ],
+              decoration: BoxDecoration(
+                color: const Color(
+                  0xFF15181E,
+                ), // Dark background matching the image
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.outline.withValues(alpha: 0.1),
+                ),
+              ),
+              child: widget.serverIp.contains('demo_ip')
+                  ? Center(
+                      child: Text(
+                        l10n.demoLivePreview,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      
-                      // Snapshot Button
-                      if (_currentUiImage != null)
-                        Positioned(
-                          bottom: 16,
-                          right: 16,
-                          child: FloatingActionButton.small(
-                            onPressed: _takeSnapshot,
-                            backgroundColor: Colors.black.withValues(alpha: 0.5),
-                            child: const Icon(Icons.camera_alt, color: Colors.white),
+                    )
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (!_isServerOnline)
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.cloud_off,
+                                    size: 64,
+                                    color: Colors.redAccent,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    l10n.serverUnreachableTitle,
+                                    style: const TextStyle(
+                                      color: Colors.redAccent,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l10n.serverUnreachableDesc,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
+                          else if (_currentUiImage != null)
+                            InteractiveViewer(
+                              minScale: 1.0,
+                              maxScale: 4.0,
+                              child: RawImage(
+                                image: _currentUiImage!,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          else
+                            const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
+                            ),
+
+                          // Overlay Chips
+                          Positioned(
+                            top: 16,
+                            left: 16,
+                            child: Row(
+                              children: [
+                                if (isDesktop) ...[
+                                  _buildBadge(l10n),
+                                  const SizedBox(width: 8),
+                                ],
+                                _buildChip(
+                                  _isCharging
+                                      ? Icons.battery_charging_full
+                                      : Icons.battery_full,
+                                  "$_batteryLevel%",
+                                ),
+                                const SizedBox(width: 8),
+                                _buildChip(
+                                  Icons.wifi,
+                                  _monitorId ?? l10n.searchingStatus,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-        ),
-        ),
+
+                          // Snapshot Button
+                          if (_currentUiImage != null)
+                            Positioned(
+                              bottom: 16,
+                              right: 16,
+                              child: FloatingActionButton.small(
+                                onPressed: _takeSnapshot,
+                                backgroundColor: Colors.black.withValues(
+                                  alpha: 0.5,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+            ),
+          ),
         ),
       ],
     );
@@ -497,10 +562,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context) {
         final badge = _getBadgeInfo(l10n);
         return Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 4,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(20),
@@ -550,7 +612,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 16.0,
+            ),
             child: Column(
               children: [
                 Transform.translate(
@@ -606,26 +671,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     }
 
-    if (zoneVisits.isEmpty) return const SizedBox.shrink();
+    Color getZoneColor(String zoneName) {
+      String type = 'safe';
+      for (var z in _zonesCache) {
+        if (z['name'] == zoneName) {
+          type = z['type'] ?? 'safe';
+          break;
+        }
+      }
+      switch (type) {
+        case 'toilet':
+          return Colors.blueGrey;
+        case 'bed':
+          return Colors.indigo;
+        case 'water':
+          return Colors.blue;
+        case 'food':
+          return Colors.orange;
+        case 'play':
+          return Colors.teal;
+        case 'safe':
+          return AppColors.success;
+        case 'danger':
+          return AppColors.warning;
+        default:
+          return AppColors.tertiary;
+      }
+    }
 
-    final List<Color> colors = [
-      AppColors.primary,
-      AppColors.secondary,
-      AppColors.warning,
-      AppColors.success,
-      AppColors.outline,
-    ];
-
-    int colorIndex = 0;
     final pieSections = zoneVisits.entries.map((e) {
-      final color = colors[colorIndex % colors.length];
-      colorIndex++;
       return PieChartSectionData(
         value: e.value.toDouble(),
         title: '${e.value}',
-        color: color,
+        color: getZoneColor(e.key),
         radius: 40,
-        titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+        titleStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       );
     }).toList();
 
@@ -633,9 +717,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2128),
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -674,8 +758,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: zoneVisits.keys.toList().asMap().entries.map((entry) {
-                      final idx = entry.key;
+                    children: zoneVisits.keys.toList().asMap().entries.map((
+                      entry,
+                    ) {
                       final name = entry.value;
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -685,7 +770,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               width: 12,
                               height: 12,
                               decoration: BoxDecoration(
-                                color: colors[idx % colors.length],
+                                color: getZoneColor(name),
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -693,7 +778,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Expanded(
                               child: Text(
                                 name,
-                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -745,7 +833,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.1),
-                  style: BorderStyle.none, // We don't have dashed border natively easily, using solid
+                  style: BorderStyle
+                      .none, // We don't have dashed border natively easily, using solid
                 ),
               ),
               child: Center(
@@ -760,16 +849,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _activities.length > 5 ? 5 : _activities.length,
-              separatorBuilder: (context, _) => Divider(color: Colors.white.withValues(alpha: 0.1)),
+              separatorBuilder: (context, _) =>
+                  Divider(color: Colors.white.withValues(alpha: 0.1)),
               itemBuilder: (context, index) {
                 final ev = _activities[index];
                 final isEnter = ev['event_type'] == 'zone_enter';
                 final date = DateTime.fromMillisecondsSinceEpoch(
                   (ev['timestamp'] * 1000).toInt(),
                 );
-                final timeString = "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+                final timeString =
+                    "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
                 final zone = ev['zone_name'] ?? l10n.unknown;
-                
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Column(
@@ -777,12 +868,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(
                         timeString,
-                        style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        isEnter ? l10n.zoneEntered(_displayPetName, zone) : l10n.zoneLeft(_displayPetName, zone),
-                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                        isEnter
+                            ? l10n.zoneEntered(_displayPetName, zone)
+                            : l10n.zoneLeft(_displayPetName, zone),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -826,19 +927,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _takeSnapshot() async {
     if (_currentUiImage == null) return;
     try {
-      final byteData = await _currentUiImage!.toByteData(format: ui.ImageByteFormat.png);
+      final byteData = await _currentUiImage!.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       if (byteData == null) return;
       final buffer = byteData.buffer.asUint8List();
 
       final tempDir = await getTemporaryDirectory();
-      final file = await File('${tempDir.path}/pet_snapshot_${DateTime.now().millisecondsSinceEpoch}.png').create();
+      final file = await File(
+        '${tempDir.path}/pet_snapshot_${DateTime.now().millisecondsSinceEpoch}.png',
+      ).create();
       await file.writeAsBytes(buffer);
 
       // ignore: deprecated_member_use
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Look what my pet is doing!',
-      );
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Look what my pet is doing!');
     } catch (e) {
       debugPrint('Snapshot error: $e');
     }
@@ -865,32 +969,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    // Left Column (Flex 2)
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        children: [
-                          _buildCameraCard(l10n, true),
-                          const SizedBox(height: 24),
-                          // Stats removed to unify design
-                        ],
-                      ),
+                        // Left Column (Flex 2)
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              _buildCameraCard(l10n, true),
+                              const SizedBox(height: 24),
+                              // Stats removed to unify design
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        // Right Column (Flex 1)
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              _buildProfileCard(l10n),
+                              const SizedBox(height: 24),
+                              _buildActivityGraph(l10n),
+                              _buildEventLog(l10n),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 24),
-                    // Right Column (Flex 1)
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        children: [
-                          _buildProfileCard(l10n),
-                          const SizedBox(height: 24),
-                          _buildActivityGraph(l10n),
-                          _buildEventLog(l10n),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
                   ],
                 ),
               ),
@@ -899,126 +1003,130 @@ class _DashboardScreenState extends State<DashboardScreen> {
         } else {
           // Mobile Layout (legacy)
           return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.greetingsList.split('|')[_greetingIndex],
-                              style: Theme.of(context).textTheme.displaySmall,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              l10n.subGreetingsList.split('|')[_subGreetingIndex],
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.greetingsList.split('|')[_greetingIndex],
+                            style: Theme.of(context).textTheme.displaySmall,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.subGreetingsList.split('|')[_subGreetingIndex],
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundColor: AppColors.primary,
-                              backgroundImage: _profilePicBytes != null
-                                  ? MemoryImage(_profilePicBytes!)
-                                  : null,
-                              child: _profilePicBytes == null
-                                  ? Icon(
-                                      _getPetIcon(_petType),
-                                      color: Theme.of(context).colorScheme.onPrimary,
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _displayPetName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  _buildCameraCard(l10n, false),
-                  const SizedBox(height: 24),
-                  
-                  _buildActivityGraph(l10n),
-
-                  // Activities Timeline
-                  Text(
-                    l10n.activities,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (_activities.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Center(
-                        child: Text(
-                          l10n.noRecentEvents,
-                          style: const TextStyle(color: AppColors.outline),
-                        ),
-                      ),
-                    )
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _activities.length,
-                      itemBuilder: (context, index) {
-                        final ev = _activities[index];
-                        final isEnter = ev['event_type'] == 'zone_enter';
-                        final date = DateTime.fromMillisecondsSinceEpoch(
-                          (ev['timestamp'] * 1000).toInt(),
-                        );
-                        final timeString =
-                            "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
-                        final zone = ev['zone_name'] ?? l10n.unknown;
-
-                        return _buildTimelineItem(
-                          isEnter ? Icons.meeting_room : Icons.directions_walk,
-                          isEnter ? AppColors.primary : AppColors.secondary,
-                          isEnter
-                              ? l10n.zoneEntered(_displayPetName, zone)
-                              : l10n.zoneLeft(_displayPetName, zone),
-                          isEnter ? l10n.cameraDetectedMovement : l10n.leftTheZone,
-                          timeString,
-                          isLast: index == _activities.length - 1,
-                        );
-                      },
                     ),
-                  const SizedBox(height: 32),
-                ],
-              ),
-            );
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: AppColors.primary,
+                            backgroundImage: _profilePicBytes != null
+                                ? MemoryImage(_profilePicBytes!)
+                                : null,
+                            child: _profilePicBytes == null
+                                ? Icon(
+                                    _getPetIcon(_petType),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _displayPetName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                _buildCameraCard(l10n, false),
+                const SizedBox(height: 24),
+
+                _buildActivityGraph(l10n),
+
+                // Activities Timeline
+                Text(
+                  l10n.activities,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(height: 16),
+
+                if (_activities.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Center(
+                      child: Text(
+                        l10n.noRecentEvents,
+                        style: const TextStyle(color: AppColors.outline),
+                      ),
+                    ),
+                  )
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _activities.length,
+                    itemBuilder: (context, index) {
+                      final ev = _activities[index];
+                      final isEnter = ev['event_type'] == 'zone_enter';
+                      final date = DateTime.fromMillisecondsSinceEpoch(
+                        (ev['timestamp'] * 1000).toInt(),
+                      );
+                      final timeString =
+                          "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+                      final zone = ev['zone_name'] ?? l10n.unknown;
+
+                      return _buildTimelineItem(
+                        isEnter ? Icons.meeting_room : Icons.directions_walk,
+                        isEnter ? AppColors.primary : AppColors.secondary,
+                        isEnter
+                            ? l10n.zoneEntered(_displayPetName, zone)
+                            : l10n.zoneLeft(_displayPetName, zone),
+                        isEnter
+                            ? l10n.cameraDetectedMovement
+                            : l10n.leftTheZone,
+                        timeString,
+                        isLast: index == _activities.length - 1,
+                      );
+                    },
+                  ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          );
         }
       },
     );

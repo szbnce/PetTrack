@@ -152,22 +152,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
                     (Route<dynamic> route) => false,
                   );
                 }
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12.0,
+                  horizontal: 16.0,
+                ),
                 child: Row(
                   children: [
-                    Icon(Icons.logout, color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+                    Icon(
+                      Icons.logout,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
                     const SizedBox(width: 12),
                     Text(
                       "Log Out",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                     ),
                   ],
@@ -205,14 +215,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             children: [
               Icon(
                 isActive ? activeIcon : icon,
-                color: isActive ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                color: isActive
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               const SizedBox(width: 16),
               Text(
                 label,
                 style: TextStyle(
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  color: isActive ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: isActive
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   fontSize: 16,
                 ),
               ),
@@ -229,21 +243,36 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     String getTitle() {
       switch (_selectedIndex) {
-        case 0: return l10n.appName;
-        case 1: return l10n.navZones;
-        case 2: return l10n.navMedical;
-        case 3: return "Replays";
-        case 4: return l10n.navSettings;
-        default: return l10n.appName;
+        case 0:
+          return l10n.appName;
+        case 1:
+          return l10n.navZones;
+        case 2:
+          return l10n.navMedical;
+        case 3:
+          return "Replays";
+        case 4:
+          return l10n.navSettings;
+        default:
+          return l10n.appName;
       }
     }
 
     final List<NavigationDestination> destinations = [
-      NavigationDestination(icon: const Icon(Icons.dashboard), label: l10n.navDashboard),
+      NavigationDestination(
+        icon: const Icon(Icons.dashboard),
+        label: l10n.navDashboard,
+      ),
       NavigationDestination(icon: const Icon(Icons.map), label: l10n.navZones),
-      NavigationDestination(icon: const Icon(Icons.medical_services), label: l10n.navMedical),
+      NavigationDestination(
+        icon: const Icon(Icons.medical_services),
+        label: l10n.navMedical,
+      ),
       NavigationDestination(icon: const Icon(Icons.history), label: "Replays"),
-      NavigationDestination(icon: const Icon(Icons.settings), label: l10n.navSettings),
+      NavigationDestination(
+        icon: const Icon(Icons.settings),
+        label: l10n.navSettings,
+      ),
     ];
 
     return Scaffold(

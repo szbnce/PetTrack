@@ -19,6 +19,7 @@ class ZonesScreen extends StatefulWidget {
 
 class _ZonesScreenState extends State<ZonesScreen> {
   ui.Image? _currentUiImage;
+  double _cameraAspectRatio = 16 / 9;
   String? _secretToken;
   Timer? _timer;
   final List<Offset> _currentPolygon = [];
@@ -45,7 +46,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
       debugPrint("Demo mode: skipping Zones HTTP polling");
       return;
     }
-    
+
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (_) {
       _fetchFrame();
     });
@@ -91,17 +92,20 @@ class _ZonesScreenState extends State<ZonesScreen> {
           .timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200 && mounted) {
-          final newBytes = response.bodyBytes;
-          ui.decodeImageFromList(newBytes, (ui.Image img) {
-            if (mounted) {
-              setState(() {
-                _currentUiImage?.dispose();
-                _currentUiImage = img;
-              });
-            } else {
-              img.dispose();
-            }
-          });
+        final newBytes = response.bodyBytes;
+        ui.decodeImageFromList(newBytes, (ui.Image img) {
+          if (mounted) {
+            setState(() {
+              _currentUiImage?.dispose();
+              _currentUiImage = img;
+              if (img.width > 0 && img.height > 0) {
+                _cameraAspectRatio = img.width / img.height;
+              }
+            });
+          } else {
+            img.dispose();
+          }
+        });
       }
     } catch (_) {}
   }
@@ -111,10 +115,14 @@ class _ZonesScreenState extends State<ZonesScreen> {
 
     final zoneConfig = {
       "name": _zoneNameController.text.trim(),
-      "polygon": _currentPolygon.map((p) => {
-        "x": p.dx / _canvasSize.width,
-        "y": p.dy / _canvasSize.height
-      }).toList(),
+      "polygon": _currentPolygon
+          .map(
+            (p) => {
+              "x": p.dx / _canvasSize.width,
+              "y": p.dy / _canvasSize.height,
+            },
+          )
+          .toList(),
       "type": _selectedZoneType,
     };
 
@@ -145,10 +153,12 @@ class _ZonesScreenState extends State<ZonesScreen> {
             "id": DateTime.now().millisecondsSinceEpoch.toString(),
             "name": _zoneNameController.text.trim(),
             "polygon": _currentPolygon
-                .map((p) => {
-                  "x": p.dx / _canvasSize.width,
-                  "y": p.dy / _canvasSize.height
-                })
+                .map(
+                  (p) => {
+                    "x": p.dx / _canvasSize.width,
+                    "y": p.dy / _canvasSize.height,
+                  },
+                )
                 .toList(),
             "type": _selectedZoneType,
           });
@@ -195,68 +205,65 @@ class _ZonesScreenState extends State<ZonesScreen> {
 
   Widget _buildCameraArea() {
     return AspectRatio(
-      aspectRatio: 4 / 3,
+      aspectRatio: _cameraAspectRatio,
       child: Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF15181E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.outline.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth > 0 && constraints.maxHeight > 0) {
-              _canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
-            }
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                if (_currentUiImage != null)
-                  RawImage(
-                    image: _currentUiImage!,
-                    fit: BoxFit.contain,
-                  )
-            else
-              const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                ),
-              ),
-            if (_isDrawing)
-              GestureDetector(
-                onTapDown: (details) {
-                  setState(() {
-                    _currentPolygon.add(details.localPosition);
-                  });
-                },
-                child: Container(
-                  color: Colors.transparent,
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: CustomPaint(
-                    painter: PolygonPainter(_currentPolygon),
-                  ),
-                ),
-              ),
-                if (!_isDrawing && _existingZones.isNotEmpty)
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: SavedZonesPainter(_existingZones),
-                    ),
-                  ),
-              ],
-            );
-          },
+        decoration: BoxDecoration(
+          color: const Color(0xFF15181E),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.outline.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-      ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 0 && constraints.maxHeight > 0) {
+                _canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
+              }
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (_currentUiImage != null)
+                    RawImage(image: _currentUiImage!, fit: BoxFit.contain)
+                  else
+                    const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  if (_isDrawing)
+                    GestureDetector(
+                      onTapDown: (details) {
+                        setState(() {
+                          _currentPolygon.add(details.localPosition);
+                        });
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: CustomPaint(
+                          painter: PolygonPainter(_currentPolygon),
+                        ),
+                      ),
+                    ),
+                  if (!_isDrawing && _existingZones.isNotEmpty)
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: SavedZonesPainter(_existingZones),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -275,7 +282,11 @@ class _ZonesScreenState extends State<ZonesScreen> {
               children: [
                 Text(
                   "Új zóna felvétele",
-                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -288,7 +299,9 @@ class _ZonesScreenState extends State<ZonesScreen> {
                     fillColor: Colors.black.withValues(alpha: 0.2),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
                   ),
                 ),
@@ -302,7 +315,9 @@ class _ZonesScreenState extends State<ZonesScreen> {
                     fillColor: Colors.black.withValues(alpha: 0.2),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
                   ),
                   items: [
@@ -374,12 +389,19 @@ class _ZonesScreenState extends State<ZonesScreen> {
                         }),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                         child: Text(
                           l10n.cancel,
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white70),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
                     ),
@@ -388,10 +410,17 @@ class _ZonesScreenState extends State<ZonesScreen> {
                       child: ElevatedButton(
                         onPressed: _saveZone,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: AppColors
+                              .tertiary, // Used AppColors.tertiary to match the exact grey from theme
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: Text(l10n.save, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          l10n.save,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -405,10 +434,14 @@ class _ZonesScreenState extends State<ZonesScreen> {
                 icon: const Icon(Icons.add_box_outlined, color: Colors.white),
                 label: Text(
                   l10n.addNewZone,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: AppColors
+                      .tertiary, // Used AppColors.tertiary to match the exact grey from theme
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
               ),
@@ -452,17 +485,40 @@ class _ZonesScreenState extends State<ZonesScreen> {
 
             switch (zone['type']) {
               case 'toilet':
-                icon = Icons.wc; color = Colors.blueGrey; bgColor = Colors.blueGrey.withValues(alpha: 0.1); subtitle = l10n.toiletZone; break;
+                icon = Icons.wc;
+                color = Colors.blueGrey;
+                bgColor = Colors.blueGrey.withValues(alpha: 0.1);
+                subtitle = l10n.toiletZone;
+                break;
               case 'bed':
-                icon = Icons.bed; color = Colors.indigo; bgColor = Colors.indigo.withValues(alpha: 0.1); subtitle = l10n.bedZone; break;
+                icon = Icons.bed;
+                color = Colors.indigo;
+                bgColor = Colors.indigo.withValues(alpha: 0.1);
+                subtitle = l10n.bedZone;
+                break;
               case 'water':
-                icon = Icons.water_drop; color = Colors.blue; bgColor = Colors.blue.withValues(alpha: 0.1); subtitle = l10n.waterZone; break;
+                icon = Icons.water_drop;
+                color = Colors.blue;
+                bgColor = Colors.blue.withValues(alpha: 0.1);
+                subtitle = l10n.waterZone;
+                break;
               case 'food':
-                icon = Icons.restaurant; color = Colors.orange; bgColor = Colors.orange.withValues(alpha: 0.1); subtitle = l10n.foodZone; break;
+                icon = Icons.restaurant;
+                color = Colors.orange;
+                bgColor = Colors.orange.withValues(alpha: 0.1);
+                subtitle = l10n.foodZone;
+                break;
               case 'play':
-                icon = Icons.sports_tennis; color = Colors.green; bgColor = Colors.green.withValues(alpha: 0.1); subtitle = l10n.playZone; break;
+                icon = Icons.sports_tennis;
+                color = Colors.green;
+                bgColor = Colors.green.withValues(alpha: 0.1);
+                subtitle = l10n.playZone;
+                break;
               default:
-                icon = Icons.place; color = AppColors.primary; bgColor = AppColors.primary.withValues(alpha: 0.1); subtitle = l10n.safeZone;
+                icon = Icons.place;
+                color = AppColors.primary;
+                bgColor = AppColors.primary.withValues(alpha: 0.1);
+                subtitle = l10n.safeZone;
             }
 
             return Container(
@@ -470,7 +526,9 @@ class _ZonesScreenState extends State<ZonesScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E2128),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+                border: Border.all(
+                  color: AppColors.outline.withValues(alpha: 0.1),
+                ),
               ),
               child: ListTile(
                 leading: Container(
@@ -483,9 +541,15 @@ class _ZonesScreenState extends State<ZonesScreen> {
                 ),
                 title: Text(
                   zone['name'],
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-                subtitle: Text(subtitle, style: TextStyle(color: Colors.white54)),
+                subtitle: Text(
+                  subtitle,
+                  style: TextStyle(color: Colors.white54),
+                ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                   onPressed: () {
@@ -522,10 +586,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Left Column (Camera)
-                      Expanded(
-                        flex: 2,
-                        child: _buildCameraArea(),
-                      ),
+                      Expanded(flex: 2, child: _buildCameraArea()),
                       const SizedBox(width: 24),
                       // Right Column (Controls & List)
                       Expanded(
@@ -553,15 +614,24 @@ class _ZonesScreenState extends State<ZonesScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               leading: IconButton(
-                icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 onPressed: () {},
               ),
               title: Text(
                 l10n.editZones,
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               actions: [
-                IconButton(icon: const Icon(Icons.pets, color: AppColors.primary), onPressed: () {}),
+                IconButton(
+                  icon: const Icon(Icons.pets, color: AppColors.primary),
+                  onPressed: () {},
+                ),
               ],
               centerTitle: true,
             ),
@@ -588,7 +658,7 @@ class _ZonesScreenState extends State<ZonesScreen> {
             ),
           );
         }
-      }
+      },
     );
   }
 }
@@ -651,7 +721,10 @@ class SavedZonesPainter extends CustomPainter {
         double py = p['y'].toDouble();
         // If they are absolute (from old bug), assume they are way out of bounds or draw them scaled down
         if (px > 2.0 || py > 2.0) {
-          return Offset(px, py); // draw as absolute (will look broken but that's what's in DB)
+          return Offset(
+            px,
+            py,
+          ); // draw as absolute (will look broken but that's what's in DB)
         }
         return Offset(px * size.width, py * size.height);
       }).toList();
@@ -702,7 +775,8 @@ class SavedZonesPainter extends CustomPainter {
           ),
           const Radius.circular(12),
         );
-        final bgPaint = Paint()..color = AppColors.onSurface.withValues(alpha: 0.8);
+        final bgPaint = Paint()
+          ..color = AppColors.onSurface.withValues(alpha: 0.8);
         canvas.drawRRect(bgRect, bgPaint);
 
         textPainter.paint(

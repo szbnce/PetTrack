@@ -114,10 +114,7 @@ class AppTheme {
               fontSize: 12,
             );
           }
-          return const TextStyle(
-            color: AppColors.onSurface,
-            fontSize: 12,
-          );
+          return const TextStyle(color: AppColors.onSurface, fontSize: 12);
         }),
       ),
       snackBarTheme: const SnackBarThemeData(
@@ -237,10 +234,7 @@ class AppTheme {
               fontSize: 12,
             );
           }
-          return const TextStyle(
-            color: AppColors.darkOnSurface,
-            fontSize: 12,
-          );
+          return const TextStyle(color: AppColors.darkOnSurface, fontSize: 12);
         }),
       ),
       snackBarTheme: const SnackBarThemeData(

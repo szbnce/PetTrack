@@ -15,6 +15,7 @@ import 'package:pettrack_app/theme/colors.dart';
 import 'package:pettrack_app/screens/monitor_setup_screen.dart';
 import 'package:pettrack_app/main.dart';
 import 'package:pettrack_app/screens/welcome_screen.dart';
+
 class MonitorScreen extends StatefulWidget {
   final String serverIp;
   final String token;
@@ -56,7 +57,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
     _currentIp = widget.serverIp;
     _currentToken = widget.token;
     _currentClientId = widget.clientId;
-    
+
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -65,8 +66,6 @@ class _MonitorScreenState extends State<MonitorScreen> {
     _initCamera();
     _connectWebSocket();
   }
-
-
 
   Future<void> _initCamera() async {
     try {
@@ -107,7 +106,8 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
     try {
       debugPrint("Connecting to ws://$_currentIp/ws");
-      final wsUrl = '${_currentIp.replaceAll("http", "ws")}/ws?token=$_currentToken&client_id=$_currentClientId';
+      final wsUrl =
+          '${_currentIp.replaceAll("http", "ws")}/ws?token=$_currentToken&client_id=$_currentClientId';
       _socket = WebSocketChannel.connect(Uri.parse(wsUrl));
 
       debugPrint("Connected successfully!");
@@ -187,9 +187,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
     if (!_isStreaming) return;
     _streamTimer?.cancel();
     final interval = (1000 / fps).round();
-    _streamTimer = Timer.periodic(Duration(milliseconds: interval), (
-      _,
-    ) async {
+    _streamTimer = Timer.periodic(Duration(milliseconds: interval), (_) async {
       if (!_isCapturing) {
         await _captureAndSendFrame();
       }
@@ -254,7 +252,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final bytes = byteData?.buffer.asUint8List();
-      
+
       image.dispose(); // Prevent OOM memory leak
 
       if (bytes != null && _socket != null) {
@@ -297,7 +295,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
               tooltip: l10n.monitorSleepMode,
               onPressed: () => setState(() => _isSleeping = true),
             ),
-          
+
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             tooltip: l10n.exit,
@@ -314,14 +312,19 @@ class _MonitorScreenState extends State<MonitorScreen> {
           PopupMenuButton<String>(
             onSelected: (value) async {
               if (value == 'theme') {
-                final isDark = PetTrackApp.themeNotifier.value == ThemeMode.dark;
-                PetTrackApp.themeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
+                final isDark =
+                    PetTrackApp.themeNotifier.value == ThemeMode.dark;
+                PetTrackApp.themeNotifier.value = isDark
+                    ? ThemeMode.light
+                    : ThemeMode.dark;
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setString('theme_mode', isDark ? 'light' : 'dark');
               } else if (value == 'settings') {
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MonitorSetupScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const MonitorSetupScreen(),
+                  ),
                 );
 
                 if (result == true && mounted) {

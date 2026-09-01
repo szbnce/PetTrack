@@ -31,9 +31,7 @@ class WelcomeScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.welcomeTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.welcomeTitle)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -50,7 +48,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 48),
-              
+
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 20),
@@ -65,15 +63,24 @@ class WelcomeScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.monitor, size: 48),
                     const SizedBox(height: 8),
-                    Text(l10n.modeClient, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(
+                      l10n.modeClient,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text(l10n.modeClientDesc, style: const TextStyle(fontSize: 14)),
+                    Text(
+                      l10n.modeClientDesc,
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 20),
@@ -88,9 +95,18 @@ class WelcomeScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.videocam, size: 48),
                     const SizedBox(height: 8),
-                    Text(l10n.modeMonitor, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(
+                      l10n.modeMonitor,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text(l10n.modeMonitorDesc, style: const TextStyle(fontSize: 14)),
+                    Text(
+                      l10n.modeMonitorDesc,
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ],
                 ),
               ),

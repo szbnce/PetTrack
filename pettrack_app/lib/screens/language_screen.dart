@@ -9,14 +9,15 @@ class LanguageScreen extends StatelessWidget {
   Future<void> _selectLanguage(BuildContext context, String code) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language_code', code);
-    
+
     if (!context.mounted) return;
-    
+
     PetTrackApp.setLocale(context, Locale(code));
-    
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const WelcomeScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const WelcomeScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -27,7 +28,7 @@ class LanguageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
       body: Center(
         child: Padding(
@@ -39,29 +40,68 @@ class LanguageScreen extends StatelessWidget {
               const Text(
                 'Choose Language\nVálassz nyelvet',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 48),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      _buildLangButton(context, 'hu', 'Magyar', colorScheme.primary, colorScheme.onPrimary),
+                      _buildLangButton(
+                        context,
+                        'hu',
+                        'Magyar',
+                        colorScheme.primary,
+                        colorScheme.onPrimary,
+                      ),
                       const SizedBox(height: 16),
-                      _buildLangButton(context, 'en', 'English', colorScheme.secondary, colorScheme.onSecondary),
+                      _buildLangButton(
+                        context,
+                        'en',
+                        'English',
+                        colorScheme.secondary,
+                        colorScheme.onSecondary,
+                      ),
                       const SizedBox(height: 16),
-                      _buildLangButton(context, 'zh', '中文 (AI-GENERATED)', Colors.orange.shade700, Colors.white),
+                      _buildLangButton(
+                        context,
+                        'zh',
+                        '中文 (AI-GENERATED)',
+                        Colors.orange.shade700,
+                        Colors.white,
+                      ),
                       const SizedBox(height: 16),
-                      _buildLangButton(context, 'it', 'Italiano (AI-GENERATED)', Colors.green.shade700, Colors.white),
+                      _buildLangButton(
+                        context,
+                        'it',
+                        'Italiano (AI-GENERATED)',
+                        Colors.green.shade700,
+                        Colors.white,
+                      ),
                       const SizedBox(height: 16),
-                      _buildLangButton(context, 'de', 'Deutsch (AI-GENERATED)', Colors.blue.shade700, Colors.white),
+                      _buildLangButton(
+                        context,
+                        'de',
+                        'Deutsch (AI-GENERATED)',
+                        Colors.blue.shade700,
+                        Colors.white,
+                      ),
                       const SizedBox(height: 16),
-                      _buildLangButton(context, 'ja', '日本語 (AI-GENERATED)', Colors.purple.shade700, Colors.white),
+                      _buildLangButton(
+                        context,
+                        'ja',
+                        '日本語 (AI-GENERATED)',
+                        Colors.purple.shade700,
+                        Colors.white,
+                      ),
                       const SizedBox(height: 16),
-                      _buildLangButton(context, 'ko', '한국어 (AI-GENERATED)', Colors.red.shade700, Colors.white),
+                      _buildLangButton(
+                        context,
+                        'ko',
+                        '한국어 (AI-GENERATED)',
+                        Colors.red.shade700,
+                        Colors.white,
+                      ),
                     ],
                   ),
                 ),
@@ -73,7 +113,13 @@ class LanguageScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLangButton(BuildContext context, String code, String label, Color bg, Color fg) {
+  Widget _buildLangButton(
+    BuildContext context,
+    String code,
+    String label,
+    Color bg,
+    Color fg,
+  ) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -86,8 +132,11 @@ class LanguageScreen extends StatelessWidget {
           ),
         ),
         onPressed: () => _selectLanguage(context, code),
-        child: Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
       ),
     );
-}
+  }
 }

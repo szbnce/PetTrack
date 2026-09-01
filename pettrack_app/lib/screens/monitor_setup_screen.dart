@@ -33,7 +33,8 @@ class _MonitorSetupScreenState extends State<MonitorSetupScreen> {
 
         String clientId = prefs.getString('client_id') ?? '';
         if (clientId.isEmpty) {
-          clientId = 'monitor_${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
+          clientId =
+              'monitor_${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
           await prefs.setString('client_id', clientId);
         }
 
@@ -104,42 +105,49 @@ class _MonitorSetupScreenState extends State<MonitorSetupScreen> {
     if (pin.isEmpty || ipInput.isEmpty) return;
 
     // Demo logic moved to _startDemoMode()
-    
+
     String targetIp = ipInput;
     if (!targetIp.startsWith('http://') && !targetIp.startsWith('https://')) {
       targetIp = 'http://$targetIp';
     }
-    
+
     final uri = Uri.tryParse(targetIp);
     if (uri != null && !uri.hasPort) {
       // If it's a local IP or localhost, append :8000 by default unless HTTPS
       final host = uri.host;
-      final isIpOrLocal = RegExp(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$').hasMatch(host) || host == 'localhost';
-      if (isIpOrLocal && uri.scheme != 'https' && !targetIp.contains(':$host')) {
-         targetIp = '${uri.scheme}://$host:8000${uri.path}';
+      final isIpOrLocal =
+          RegExp(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$').hasMatch(host) ||
+          host == 'localhost';
+      if (isIpOrLocal &&
+          uri.scheme != 'https' &&
+          !targetIp.contains(':$host')) {
+        targetIp = '${uri.scheme}://$host:8000${uri.path}';
       }
     }
-    
+
     _ipController.text = targetIp;
-    
+
     setState(() => _isProcessing = true);
     try {
-      final response = await http.post(
-        Uri.parse('$targetIp/api/auth/login_pin'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'pin': pin}),
-      ).timeout(const Duration(seconds: 3));
+      final response = await http
+          .post(
+            Uri.parse('$targetIp/api/auth/login_pin'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'pin': pin}),
+          )
+          .timeout(const Duration(seconds: 3));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('server_ip', targetIp);
         await prefs.setString('server_token', data['secret']);
 
         String clientId = prefs.getString('client_id') ?? '';
         if (clientId.isEmpty) {
-          clientId = 'monitor_${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
+          clientId =
+              'monitor_${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
           await prefs.setString('client_id', clientId);
         }
 
@@ -160,7 +168,9 @@ class _MonitorSetupScreenState extends State<MonitorSetupScreen> {
     } catch (e) {
       setState(() => _isProcessing = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to connect or invalid PIN')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to connect or invalid PIN')),
+        );
       }
     }
   }
@@ -195,9 +205,14 @@ class _MonitorSetupScreenState extends State<MonitorSetupScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surface.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -214,61 +229,61 @@ class _MonitorSetupScreenState extends State<MonitorSetupScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          TextField(
-                            controller: _ipController,
-                            decoration: InputDecoration(
-                              labelText: l10n.serverIp,
-                              hintText: l10n.serverIpHint,
-                              border: const OutlineInputBorder(),
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            TextField(
+                              controller: _ipController,
+                              decoration: InputDecoration(
+                                labelText: l10n.serverIp,
+                                hintText: l10n.serverIpHint,
+                                border: const OutlineInputBorder(),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _pinController,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.enterPin,
-                                    border: const OutlineInputBorder(),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _pinController,
+                                    decoration: InputDecoration(
+                                      labelText: l10n.enterPin,
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    maxLength: 4,
                                   ),
-                                  keyboardType: TextInputType.number,
-                                  maxLength: 4,
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              ElevatedButton(
-                                onPressed: _handlePinSubmit,
-                                child: const Text('Submit'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          TextButton.icon(
-                            onPressed: () => _startDemoMode(context),
-                            icon: const Icon(Icons.play_circle_fill),
-                            label: const Text('Demo Mode'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.orange,
+                                const SizedBox(width: 16),
+                                ElevatedButton(
+                                  onPressed: _handlePinSubmit,
+                                  child: const Text('Submit'),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 10),
+                            TextButton.icon(
+                              onPressed: () => _startDemoMode(context),
+                              icon: const Icon(Icons.play_circle_fill),
+                              label: const Text('Demo Mode'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          if (_isProcessing)
-            Container(
-              color: Colors.black54,
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-        ],
-      ),
+            if (_isProcessing)
+              Container(
+                color: Colors.black54,
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        ),
       ),
     );
   }

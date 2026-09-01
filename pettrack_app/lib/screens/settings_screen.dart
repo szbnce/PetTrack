@@ -8,6 +8,7 @@ import '../theme/colors.dart';
 import '../main.dart';
 import 'main_navigation.dart';
 import '../services/notification_service.dart';
+import '../services/wear_sync_service.dart';
 import 'package:http/http.dart' as http;
 
 class SettingsScreen extends StatefulWidget {
@@ -73,10 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (ip.isNotEmpty && token.isNotEmpty && !ip.contains('demo_ip')) {
       try {
         final response = await http
-            .get(
-              Uri.parse('$ip/api/pet'),
-              headers: {'x-api-token': token},
-            )
+            .get(Uri.parse('$ip/api/pet'), headers: {'x-api-token': token})
             .timeout(const Duration(seconds: 3));
 
         if (response.statusCode == 200 && mounted) {
@@ -135,17 +133,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!ip.startsWith('http://') && !ip.startsWith('https://')) {
       ip = 'http://$ip';
     }
-    
+
     final uri = Uri.tryParse(ip);
     if (uri != null && !uri.hasPort) {
       final host = uri.host;
-      final isIpOrLocal = RegExp(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$').hasMatch(host) || host == 'localhost';
+      final isIpOrLocal =
+          RegExp(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$').hasMatch(host) ||
+          host == 'localhost';
       if (isIpOrLocal && uri.scheme != 'https') {
-         ip = '${uri.scheme}://$host:8000${uri.path}';
+        ip = '${uri.scheme}://$host:8000${uri.path}';
       }
     }
     _ipController.text = ip;
-    
+
     final secret = _tokenController.text.trim();
 
     setState(() => _isLoading = true);
@@ -267,7 +267,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-
   Widget _buildProfilePicture(AppLocalizations l10n) {
     return Column(
       children: [
@@ -300,19 +299,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.surfaceVariant,
                   image: _profilePicBase64 != null
                       ? DecorationImage(
-                          image: MemoryImage(
-                            base64Decode(_profilePicBase64!),
-                          ),
+                          image: MemoryImage(base64Decode(_profilePicBase64!)),
                           fit: BoxFit.cover,
                         )
                       : null,
                 ),
                 child: _profilePicBase64 == null
-                    ? const Icon(
-                        Icons.pets,
-                        size: 60,
-                        color: AppColors.primary,
-                      )
+                    ? const Icon(Icons.pets, size: 60, color: AppColors.primary)
                     : null,
               ),
               Container(
@@ -321,11 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.edit,
-                  color: Colors.white,
-                  size: 18,
-                ),
+                child: const Icon(Icons.edit, color: Colors.white, size: 18),
               ),
             ],
           ),
@@ -343,20 +332,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildProfileCard(AppLocalizations l10n) {
     return _buildCard(l10n.profileAndSystem, [
-      Text(
-        l10n.petName,
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
+      Text(l10n.petName, style: Theme.of(context).textTheme.labelLarge),
       const SizedBox(height: 8),
       TextField(
         controller: _petNameController,
         decoration: InputDecoration(hintText: l10n.petNameHint),
       ),
       const SizedBox(height: 20),
-      Text(
-        l10n.petTypeTitle,
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
+      Text(l10n.petTypeTitle, style: Theme.of(context).textTheme.labelLarge),
       const SizedBox(height: 8),
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -368,17 +351,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: DropdownButton<String>(
             value: _petType,
             isExpanded: true,
-            items:
-                ['dog', 'cat', 'rabbit', 'guineapig', 'bird', 'other']
-                    .map(
-                      (type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(
-                          _getLocalizedPetType(context, type),
-                        ),
-                      ),
-                    )
-                    .toList(),
+            items: ['dog', 'cat', 'rabbit', 'guineapig', 'bird', 'other']
+                .map(
+                  (type) => DropdownMenuItem(
+                    value: type,
+                    child: Text(_getLocalizedPetType(context, type)),
+                  ),
+                )
+                .toList(),
             onChanged: (String? newValue) {
               if (newValue != null) {
                 setState(() => _petType = newValue);
@@ -410,14 +390,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       value: _languageCode,
                       isExpanded: true,
                       items: const [
-                        DropdownMenuItem(
-                          value: 'en',
-                          child: Text('English'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'hu',
-                          child: Text('Magyar'),
-                        ),
+                        DropdownMenuItem(value: 'en', child: Text('English')),
+                        DropdownMenuItem(value: 'hu', child: Text('Magyar')),
                         DropdownMenuItem(
                           value: 'zh',
                           child: Text('中文 (AI-GENERATED)'),
@@ -440,20 +414,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ],
                       onChanged: (String? newValue) async {
-                        if (newValue != null &&
-                            newValue != _languageCode) {
+                        if (newValue != null && newValue != _languageCode) {
                           setState(() => _languageCode = newValue);
-                          final prefs =
-                              await SharedPreferences.getInstance();
-                          await prefs.setString(
-                            'language_code',
-                            newValue,
-                          );
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString('language_code', newValue);
                           if (mounted) {
-                            PetTrackApp.setLocale(
-                              context,
-                              Locale(newValue),
-                            );
+                            PetTrackApp.setLocale(context, Locale(newValue));
                           }
                         }
                       },
@@ -524,8 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       SwitchListTile(
         title: Text(l10n.alertsBattery),
         value: _alertsBatteryEnabled,
-        onChanged: (val) =>
-            setState(() => _alertsBatteryEnabled = val),
+        onChanged: (val) => setState(() => _alertsBatteryEnabled = val),
         contentPadding: EdgeInsets.zero,
       ),
       if (_alertsBatteryEnabled) ...[
@@ -561,25 +526,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildMonitorCard(AppLocalizations l10n) {
     return _buildCard(l10n.monitorAndConnection, [
-      Text(
-        l10n.serverIp,
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
+      Text(l10n.serverIp, style: Theme.of(context).textTheme.labelLarge),
       const SizedBox(height: 8),
       TextField(
         controller: _ipController,
         decoration: InputDecoration(hintText: l10n.serverIpHint),
       ),
       const SizedBox(height: 20),
-      Text(
-        l10n.secretToken,
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
+      Text(l10n.secretToken, style: Theme.of(context).textTheme.labelLarge),
       const SizedBox(height: 8),
-      TextField(
-        controller: _tokenController,
-        obscureText: true,
-      ),
+      TextField(controller: _tokenController, obscureText: true),
       const SizedBox(height: 24),
       SizedBox(
         width: double.infinity,
@@ -646,9 +602,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed: () => Navigator.of(ctx).pop(true),
                       child: Text(
                         l10n.settingsResetApp,
-                        style: const TextStyle(
-                          color: Colors.redAccent,
-                        ),
+                        style: const TextStyle(color: Colors.redAccent),
                       ),
                     ),
                   ],
@@ -661,9 +615,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await prefs.clear();
               if (mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (_) => const BootScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const BootScreen()),
                   (route) => false,
                 );
               }
@@ -694,10 +646,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Text(
               l10n.save,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 8),
             const Icon(Icons.check, size: 20),
@@ -705,11 +654,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
+    );
+  }
+
+  Widget _buildSyncToWatchButton(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Szinkronizálás indítása...')),
+              );
+              final success = await WearSyncService().sendCredentialsToWatch(
+                _ipController.text,
+                _tokenController.text,
+              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Sikeresen elküldve az órára!'
+                          : 'Nem található csatlakoztatott óra.',
+                    ),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.watch, color: Colors.blueAccent),
+            label: const Text(
+              "Szinkronizálás Okosórával",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueAccent,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: const BorderSide(color: Colors.blueAccent),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -761,6 +757,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             children: [
                               _buildMonitorCard(l10n),
                               _buildSaveButton(l10n),
+                              _buildSyncToWatchButton(context),
                             ],
                           ),
                         ),
@@ -795,6 +792,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _buildMonitorCard(l10n),
                     const SizedBox(height: 16),
                     _buildSaveButton(l10n),
+                    _buildSyncToWatchButton(context),
                     const SizedBox(height: 32),
                   ],
                 ),

@@ -24,24 +24,24 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   void initState() {
     super.initState();
     final uri = Uri.parse(widget.videoUrl);
-    final uriWithToken = uri.replace(queryParameters: {
-      ...uri.queryParameters,
-      'token': widget.token,
-    });
+    final uriWithToken = uri.replace(
+      queryParameters: {...uri.queryParameters, 'token': widget.token},
+    );
 
-    _controller = VideoPlayerController.networkUrl(
-      uriWithToken,
-    )..initialize().then((_) {
-        setState(() {
-          _initialized = true;
-        });
-        _controller.play();
-        _controller.setLooping(true);
-      }).catchError((error) {
-        setState(() {
-          _error = true;
-        });
-      });
+    _controller = VideoPlayerController.networkUrl(uriWithToken)
+      ..initialize()
+          .then((_) {
+            setState(() {
+              _initialized = true;
+            });
+            _controller.play();
+            _controller.setLooping(true);
+          })
+          .catchError((error) {
+            setState(() {
+              _error = true;
+            });
+          });
   }
 
   @override
@@ -57,11 +57,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         child: Icon(Icons.error_outline, color: Colors.red, size: 48),
       );
     }
-    
+
     if (!_initialized) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return Stack(

@@ -282,7 +282,11 @@ class _MedicalScreenState extends State<MedicalScreen>
     );
   }
 
-  Widget _buildDesktopColumnTitle(String title, IconData icon, VoidCallback onAdd) {
+  Widget _buildDesktopColumnTitle(
+    String title,
+    IconData icon,
+    VoidCallback onAdd,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -336,12 +340,18 @@ class _MedicalScreenState extends State<MedicalScreen>
                             decoration: BoxDecoration(
                               color: const Color(0xFF1E2128),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+                              border: Border.all(
+                                color: AppColors.outline.withValues(alpha: 0.1),
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildDesktopColumnTitle(l10n.medications, Icons.medical_services, () => _showAddMedicationDialog(l10n)),
+                                _buildDesktopColumnTitle(
+                                  l10n.medications,
+                                  Icons.medical_services,
+                                  () => _showAddMedicationDialog(l10n),
+                                ),
                                 const SizedBox(height: 16),
                                 Expanded(child: _buildMedicationsTab(l10n)),
                               ],
@@ -356,12 +366,18 @@ class _MedicalScreenState extends State<MedicalScreen>
                             decoration: BoxDecoration(
                               color: const Color(0xFF1E2128),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.outline.withValues(alpha: 0.1)),
+                              border: Border.all(
+                                color: AppColors.outline.withValues(alpha: 0.1),
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildDesktopColumnTitle(l10n.vaccines, Icons.vaccines, () => _showAddVaccineDialog(l10n)),
+                                _buildDesktopColumnTitle(
+                                  l10n.vaccines,
+                                  Icons.vaccines,
+                                  () => _showAddVaccineDialog(l10n),
+                                ),
                                 const SizedBox(height: 16),
                                 Expanded(child: _buildVaccinesTab(l10n)),
                               ],
@@ -385,7 +401,10 @@ class _MedicalScreenState extends State<MedicalScreen>
               labelColor: AppColors.primary,
               unselectedLabelColor: Colors.grey,
               tabs: [
-                Tab(icon: const Icon(Icons.medical_services), text: l10n.medications),
+                Tab(
+                  icon: const Icon(Icons.medical_services),
+                  text: l10n.medications,
+                ),
                 Tab(icon: const Icon(Icons.vaccines), text: l10n.vaccines),
               ],
             ),
@@ -407,7 +426,7 @@ class _MedicalScreenState extends State<MedicalScreen>
             ),
           );
         }
-      }
+      },
     );
   }
 
@@ -428,50 +447,104 @@ class _MedicalScreenState extends State<MedicalScreen>
         final med = _medications[i];
         final cardColor = Color(med.colorValue);
 
-        return Card(
-          color: cardColor.withValues(alpha: 0.15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: cardColor.withValues(alpha: 0.3), width: 1),
-          ),
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            leading: CircleAvatar(
-              backgroundColor: cardColor.withValues(alpha: 0.2),
-              child: Icon(Icons.medical_services, color: cardColor),
-            ),
-            title: Text(
-              med.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                "${med.dose} • ${l10n.everyXHours(med.intervalHours)}",
-                style: const TextStyle(fontSize: 13),
-              ),
-            ),
-            trailing: med.alertEnabled
-                ? const Icon(Icons.notifications_active, color: Colors.orange)
-                : const Icon(Icons.notifications_off, color: Colors.grey),
-            onLongPress: () async {
-              // Confirm delete dialog could be added here
-              if (med.alertEnabled) {
-                await NotificationService().cancelNotification(
-                  int.tryParse(med.id) ?? 0,
-                );
-              }
-              setState(() => _medications.removeAt(i));
-              await MedicalDataManager.saveMedications(
-                _medications,
-                widget.serverIp,
-                widget.token,
+        return GestureDetector(
+          onLongPress: () async {
+            if (med.alertEnabled) {
+              await NotificationService().cancelNotification(
+                int.tryParse(med.id) ?? 0,
               );
-            },
+            }
+            setState(() => _medications.removeAt(i));
+            await MedicalDataManager.saveMedications(
+              _medications,
+              widget.serverIp,
+              widget.token,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: cardColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cardColor.withValues(alpha: 0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.outline.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: cardColor.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.medical_services,
+                        color: cardColor,
+                        size: 20,
+                      ),
+                    ),
+                    med.alertEnabled
+                        ? const Icon(
+                            Icons.notifications_active,
+                            color: Colors.orange,
+                            size: 20,
+                          )
+                        : const Icon(
+                            Icons.notifications_off,
+                            color: Colors.grey,
+                            size: 20,
+                          ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        med.name,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      if (med.dose.isNotEmpty)
+                        Text(
+                          " ${med.dose}",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: AppColors.outline,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.everyXHours(med.intervalHours),
+                  style: const TextStyle(
+                    color: AppColors.outline,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -495,42 +568,84 @@ class _MedicalScreenState extends State<MedicalScreen>
         final vac = _vaccines[i];
         final cardColor = Color(vac.colorValue);
 
-        return Card(
-          color: cardColor.withValues(alpha: 0.15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: cardColor.withValues(alpha: 0.3), width: 1),
-          ),
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
+        return GestureDetector(
+          onLongPress: () async {
+            setState(() => _vaccines.removeAt(i));
+            await MedicalDataManager.saveVaccines(
+              _vaccines,
+              widget.serverIp,
+              widget.token,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: cardColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cardColor.withValues(alpha: 0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.outline.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            leading: CircleAvatar(
-              backgroundColor: cardColor.withValues(alpha: 0.2),
-              child: Icon(Icons.vaccines, color: cardColor),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: cardColor.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.vaccines, color: cardColor, size: 20),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        vac.name,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      if (vac.dateGiven.isNotEmpty)
+                        Text(
+                          " ${vac.dateGiven}",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: AppColors.outline,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "${l10n.nextDue}: ${vac.nextDue}",
+                  style: const TextStyle(
+                    color: AppColors.outline,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
-            title: Text(
-              vac.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                "${l10n.dateGiven}: ${vac.dateGiven}\n${l10n.nextDue}: ${vac.nextDue}",
-                style: const TextStyle(height: 1.3, fontSize: 13),
-              ),
-            ),
-            isThreeLine: true,
-            onLongPress: () async {
-              setState(() => _vaccines.removeAt(i));
-              await MedicalDataManager.saveVaccines(
-                _vaccines,
-                widget.serverIp,
-                widget.token,
-              );
-            },
           ),
         );
       },

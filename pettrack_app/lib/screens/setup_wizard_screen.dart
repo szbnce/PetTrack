@@ -32,27 +32,43 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   bool _isLoading = false;
   Timer? _monitorPollTimer;
 
-  final List<String> _petTypes = ['dog', 'cat', 'rabbit', 'guineaPig', 'bird', 'other'];
+  final List<String> _petTypes = [
+    'dog',
+    'cat',
+    'rabbit',
+    'guineaPig',
+    'bird',
+    'other',
+  ];
 
   String _getTranslatedType(String typeKey, AppLocalizations l10n) {
     switch (typeKey) {
-      case 'dog': return l10n.petTypeDog;
-      case 'cat': return l10n.petTypeCat;
-      case 'rabbit': return l10n.petTypeRabbit;
-      case 'guineaPig': return l10n.petTypeGuineaPig;
-      case 'bird': return l10n.petTypeBird;
-      case 'other': return l10n.petTypeOther;
-      default: return l10n.unknown;
+      case 'dog':
+        return l10n.petTypeDog;
+      case 'cat':
+        return l10n.petTypeCat;
+      case 'rabbit':
+        return l10n.petTypeRabbit;
+      case 'guineaPig':
+        return l10n.petTypeGuineaPig;
+      case 'bird':
+        return l10n.petTypeBird;
+      case 'other':
+        return l10n.petTypeOther;
+      default:
+        return l10n.unknown;
     }
   }
 
   Future<void> _startQRscan() async {
-    final result = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const QRScannerScreen()));
+    final result = await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const QRScannerScreen()));
     if (result != null && result is Map<String, dynamic>) {
       _processLogin(result['ip'], result['secret']);
     }
   }
-  
+
   Future<void> _startDemoMode(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     final bool? wantDemo = await showDialog<bool>(
@@ -72,7 +88,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         ],
       ),
     );
-    
+
     if (wantDemo == true) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('server_ip', 'demo_ip');
@@ -80,14 +96,16 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       await prefs.setString('pet_name', 'Demo Pet');
       await prefs.setString('app_mode', 'client');
       await _secureStorage.write(key: 'demo_pin', value: '8068');
-      
+
       if (!context.mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen(
-          serverIp: 'demo_ip',
-          token: 'demo_token',
-          petName: 'Demo Pet',
-        )),
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(
+            serverIp: 'demo_ip',
+            token: 'demo_token',
+            petName: 'Demo Pet',
+          ),
+        ),
       );
     }
   }
@@ -96,62 +114,75 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     final pin = _pinController.text.trim();
     final ipInput = _ipController.text.trim();
     if (pin.isEmpty || ipInput.isEmpty) return;
-    
+
     // Demo logic moved to _startDemoMode()
-    
+
     String targetIp = ipInput;
     if (!targetIp.startsWith('http://') && !targetIp.startsWith('https://')) {
       targetIp = 'http://$targetIp';
     }
-    
+
     final uri = Uri.tryParse(targetIp);
     if (uri != null && !uri.hasPort) {
       // If it's a local IP or localhost, append :8000 by default unless HTTPS
       final host = uri.host;
-      final isIpOrLocal = RegExp(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$').hasMatch(host) || host == 'localhost';
-      if (isIpOrLocal && uri.scheme != 'https' && !targetIp.contains(':$host')) {
-         targetIp = '${uri.scheme}://$host:8000${uri.path}';
+      final isIpOrLocal =
+          RegExp(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$').hasMatch(host) ||
+          host == 'localhost';
+      if (isIpOrLocal &&
+          uri.scheme != 'https' &&
+          !targetIp.contains(':$host')) {
+        targetIp = '${uri.scheme}://$host:8000${uri.path}';
       }
     }
-    
+
     _ipController.text = targetIp;
-    
+
     setState(() => _isLoading = true);
     try {
-      final response = await http.post(
-        Uri.parse('$targetIp/api/auth/login_pin'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'pin': pin}),
-      ).timeout(const Duration(seconds: 3));
+      final response = await http
+          .post(
+            Uri.parse('$targetIp/api/auth/login_pin'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'pin': pin}),
+          )
+          .timeout(const Duration(seconds: 3));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         // Try to fetch existing pet data to avoid re-entering
         try {
-          final petRes = await http.get(
-            Uri.parse('$targetIp/api/pet'),
-            headers: {'x-api-token': data['secret']},
-          ).timeout(const Duration(seconds: 3));
-          
+          final petRes = await http
+              .get(
+                Uri.parse('$targetIp/api/pet'),
+                headers: {'x-api-token': data['secret']},
+              )
+              .timeout(const Duration(seconds: 3));
+
           if (petRes.statusCode == 200) {
             final petData = jsonDecode(petRes.body);
             if (petData['name'] != null && petData['name'] != 'Unknown') {
               _nameController.text = petData['name'];
-              String typeVal = (petData['type'] ?? 'dog').toString().toLowerCase();
+              String typeVal = (petData['type'] ?? 'dog')
+                  .toString()
+                  .toLowerCase();
               if (typeVal.startsWith('pettype')) {
                 typeVal = typeVal.replaceFirst('pettype', '');
               }
               _selectedType = typeVal;
-              
+
               // We have an existing pet! Skip the rest of the wizard.
               setState(() {
                 _serverIp = targetIp;
                 _secretToken = data['secret'];
                 _jwtToken = data['secret'];
               });
-              await _secureStorage.write(key: 'secret_token', value: _secretToken!);
-              
+              await _secureStorage.write(
+                key: 'secret_token',
+                value: _secretToken!,
+              );
+
               final prefs = await SharedPreferences.getInstance();
               await prefs.setString('server_ip', _serverIp!);
               await prefs.setString('secret_token', _secretToken!);
@@ -159,7 +190,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               await prefs.setString('pet_name', _nameController.text.trim());
               await prefs.setString('pet_type', _selectedType);
               await prefs.setBool('is_setup_completed', true);
-              
+
               if (mounted) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -184,7 +215,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           _jwtToken = data['secret']; // Note: matching web logic for token
           _isLoading = false;
         });
-        
+
         await _secureStorage.write(key: 'secret_token', value: _secretToken!);
 
         _pageController.nextPage(
@@ -197,7 +228,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to connect or invalid PIN')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to connect or invalid PIN')),
+        );
       }
     }
   }
@@ -205,32 +238,38 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   Future<void> _processLogin(String ip, String secret) async {
     setState(() => _isLoading = true);
     try {
-      final response = await http.post(
-        Uri.parse('$ip/api/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'secret': secret}),
-      ).timeout(const Duration(seconds: 3));
+      final response = await http
+          .post(
+            Uri.parse('$ip/api/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'secret': secret}),
+          )
+          .timeout(const Duration(seconds: 3));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         // Try to fetch existing pet data to avoid re-entering
         try {
-          final petRes = await http.get(
-            Uri.parse('$ip/api/pet'),
-            headers: {'x-api-token': data['token']},
-          ).timeout(const Duration(seconds: 3));
-          
+          final petRes = await http
+              .get(
+                Uri.parse('$ip/api/pet'),
+                headers: {'x-api-token': data['token']},
+              )
+              .timeout(const Duration(seconds: 3));
+
           if (petRes.statusCode == 200) {
             final petData = jsonDecode(petRes.body);
             if (petData['name'] != null && petData['name'] != 'Unknown') {
               _nameController.text = petData['name'];
-              String typeVal = (petData['type'] ?? 'dog').toString().toLowerCase();
+              String typeVal = (petData['type'] ?? 'dog')
+                  .toString()
+                  .toLowerCase();
               if (typeVal.startsWith('pettype')) {
                 typeVal = typeVal.replaceFirst('pettype', '');
               }
               _selectedType = typeVal;
-              
+
               // We have an existing pet! Skip the rest of the wizard.
               setState(() {
                 _serverIp = ip;
@@ -238,7 +277,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                 _jwtToken = data['token'];
               });
               await _secureStorage.write(key: 'secret_token', value: secret);
-              
+
               final prefs = await SharedPreferences.getInstance();
               await prefs.setString('server_ip', _serverIp!);
               await prefs.setString('secret_token', _secretToken!);
@@ -246,7 +285,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               await prefs.setString('pet_name', _nameController.text.trim());
               await prefs.setString('pet_type', _selectedType);
               await prefs.setBool('is_setup_completed', true);
-              
+
               if (mounted) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -271,7 +310,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           _jwtToken = data['token'];
           _isLoading = false;
         });
-        
+
         await _secureStorage.write(key: 'secret_token', value: secret);
 
         _pageController.nextPage(
@@ -285,7 +324,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.setupErrConnect)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.setupErrConnect)));
       }
     }
   }
@@ -300,7 +341,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     if (_nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.setupErrEmpty)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.setupErrEmpty)));
       return;
     }
 
@@ -334,18 +377,24 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.setupErrSave)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.setupErrSave)));
       }
     }
   }
 
   void _startMonitorPolling() {
-    _monitorPollTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+    _monitorPollTimer = Timer.periodic(const Duration(seconds: 2), (
+      timer,
+    ) async {
       try {
-        final response = await http.get(
-          Uri.parse('$_serverIp/api/status'),
-          headers: {'x-api-token': _jwtToken!},
-        ).timeout(const Duration(seconds: 2));
+        final response = await http
+            .get(
+              Uri.parse('$_serverIp/api/status'),
+              headers: {'x-api-token': _jwtToken!},
+            )
+            .timeout(const Duration(seconds: 2));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -390,135 +439,142 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          _buildPage(
-            title: l10n.setupWelcomeTitle,
-            description: l10n.setupWelcomeDesc,
-            icon: Icons.qr_code_scanner,
-            child: Column(
-              children: [
-                TextField(
-                  controller: _ipController,
-                  decoration: InputDecoration(
-                    labelText: 'Server IP (e.g. 192.168.1.100)',
-                    hintText: '192.168.1.X:8000',
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _pinController,
-                  decoration: InputDecoration(
-                    labelText: l10n.enterPin,
-                    border: const OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  maxLength: 4,
-                ),
-                ElevatedButton(
-                  onPressed: _handlePinSubmit,
-                  child: const Text('Submit PIN'),
-                ),
-                const SizedBox(height: 16),
-                TextButton.icon(
-                  onPressed: () => _startDemoMode(context),
-                  icon: const Icon(Icons.play_circle_fill),
-                  label: const Text('Demo Mode'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.orange,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text('OR'),
-              ],
-            ),
-            actionButton: _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton.icon(
-                    onPressed: _startQRscan,
-                    icon: const Icon(Icons.camera_alt),
-                    label: Text(
-                      l10n.setupScanBtn,
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _buildPage(
+              title: l10n.setupWelcomeTitle,
+              description: l10n.setupWelcomeDesc,
+              icon: Icons.qr_code_scanner,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _ipController,
+                    decoration: InputDecoration(
+                      labelText: 'Server IP (e.g. 192.168.1.100)',
+                      hintText: '192.168.1.X:8000',
+                      border: const OutlineInputBorder(),
                     ),
                   ),
-          ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _pinController,
+                    decoration: InputDecoration(
+                      labelText: l10n.enterPin,
+                      border: const OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                  ),
+                  ElevatedButton(
+                    onPressed: _handlePinSubmit,
+                    child: const Text('Submit PIN'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    onPressed: () => _startDemoMode(context),
+                    icon: const Icon(Icons.play_circle_fill),
+                    label: const Text('Demo Mode'),
+                    style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('OR'),
+                ],
+              ),
+              actionButton: _isLoading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton.icon(
+                      onPressed: _startQRscan,
+                      icon: const Icon(Icons.camera_alt),
+                      label: Text(
+                        l10n.setupScanBtn,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 15,
+                        ),
+                      ),
+                    ),
+            ),
 
-          _buildPage(
-            title: l10n.setupSuccessTitle,
-            description: l10n.setupSuccessDesc,
-            icon: Icons.pets,
-            child: Column(
-              children: [
-                TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: l10n.petName,
-                    border: const OutlineInputBorder(),
+            _buildPage(
+              title: l10n.setupSuccessTitle,
+              description: l10n.setupSuccessDesc,
+              icon: Icons.pets,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: l10n.petName,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedType,
+                    decoration: InputDecoration(
+                      labelText: l10n.petTypeTitle,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: _petTypes.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(_getTranslatedType(value, l10n)),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedType = newValue!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actionButton: ElevatedButton(
+                onPressed: () {
+                  if (_nameController.text.isNotEmpty) {
+                    _finishSetup();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 15,
                   ),
                 ),
-                const SizedBox(height: 20),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedType,
-                  decoration: InputDecoration(
-                    labelText: l10n.petTypeTitle,
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: _petTypes.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(_getTranslatedType(value, l10n)),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      _selectedType = newValue!;
-                    });
-                  },
+                child: Text(
+                  l10n.setupNextBtn,
+                  style: const TextStyle(fontSize: 18),
                 ),
-              ],
-            ),
-            actionButton: ElevatedButton(
-              onPressed: () {
-                if (_nameController.text.isNotEmpty) {
-                  _finishSetup();
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              ),
-              child: Text(
-                l10n.setupNextBtn,
-                style: const TextStyle(fontSize: 18),
               ),
             ),
-          ),
 
-          _buildPage(
-            title: l10n.setupMonitorTitle,
-            description: l10n.setupMonitorDesc,
-            icon: Icons.camera_indoor,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+            _buildPage(
+              title: l10n.setupMonitorTitle,
+              description: l10n.setupMonitorDesc,
+              icon: Icons.camera_indoor,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: QrImageView(
+                  data: jsonEncode({
+                    "ip": "$_serverIp",
+                    "secret": _secretToken,
+                  }),
+                  version: QrVersions.auto,
+                  size: 200.0,
+                ),
               ),
-              child: QrImageView(
-                data: jsonEncode({"ip": "$_serverIp", "secret": _secretToken}),
-                version: QrVersions.auto,
-                size: 200.0,
-              ),
+              actionButton: const CircularProgressIndicator(),
             ),
-            actionButton: const CircularProgressIndicator(),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -539,13 +595,17 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           const SizedBox(height: 24),
           Text(
             title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             description,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
