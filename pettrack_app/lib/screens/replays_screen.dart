@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:pettrack_app/l10n/app_localizations.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/colors.dart';
 import '../widgets/video_player_widget.dart';
@@ -116,7 +116,6 @@ class _ReplaysScreenState extends State<ReplaysScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDesktop = MediaQuery.of(context).size.width >= 800;
 

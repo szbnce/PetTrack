@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pettrack_app/l10n/app_localizations.dart';
-import '../theme/colors.dart';
 import 'dashboard_screen.dart';
 import 'zones_screen.dart';
 import 'settings_screen.dart';

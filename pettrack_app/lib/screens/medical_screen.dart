@@ -125,7 +125,7 @@ class _MedicalScreenState extends State<MedicalScreen>
                 SwitchListTile(
                   title: Text(l10n.enableAlert),
                   value: alertEnabled,
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                   onChanged: (val) => setDialogState(() => alertEnabled = val),
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -147,7 +147,7 @@ class _MedicalScreenState extends State<MedicalScreen>
                   dose: doseCtrl.text,
                   intervalHours: interval,
                   alertEnabled: alertEnabled,
-                  colorValue: selectedColor.value,
+                  colorValue: selectedColor.toARGB32(),
                 );
 
                 if (alertEnabled) {
@@ -166,7 +166,7 @@ class _MedicalScreenState extends State<MedicalScreen>
                   widget.token,
                 );
                 setState(() {});
-                if (mounted) Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
               },
               child: Text(l10n.saveMedication),
             ),
@@ -247,7 +247,7 @@ class _MedicalScreenState extends State<MedicalScreen>
                   name: nameCtrl.text,
                   dateGiven: dateCtrl.text,
                   nextDue: nextCtrl.text,
-                  colorValue: selectedColor.value,
+                  colorValue: selectedColor.toARGB32(),
                 );
                 _vaccines.add(newVac);
                 await MedicalDataManager.saveVaccines(
@@ -256,7 +256,7 @@ class _MedicalScreenState extends State<MedicalScreen>
                   widget.token,
                 );
                 setState(() {});
-                if (mounted) Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
               },
               child: Text(l10n.saveVaccine),
             ),

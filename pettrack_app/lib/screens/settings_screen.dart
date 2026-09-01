@@ -449,7 +449,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             'language_code',
                             newValue,
                           );
-                          if (context.mounted) {
+                          if (mounted) {
                             PetTrackApp.setLocale(
                               context,
                               Locale(newValue),
@@ -659,7 +659,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (confirm == true) {
               final prefs = await SharedPreferences.getInstance();
               await prefs.clear();
-              if (context.mounted) {
+              if (mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
                     builder: (_) => const BootScreen(),

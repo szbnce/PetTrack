@@ -7,7 +7,6 @@ import 'package:pettrack_app/l10n/app_localizations.dart';
 import 'package:camera/camera.dart';
 
 import 'theme/app_theme.dart';
-import 'screens/welcome_screen.dart';
 import 'screens/language_screen.dart';
 import 'screens/main_navigation.dart';
 import 'screens/setup_wizard_screen.dart';

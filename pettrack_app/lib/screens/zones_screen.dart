@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pettrack_app/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/colors.dart';
-import 'package:encrypt/encrypt.dart' as enc;
-import 'package:crypto/crypto.dart';
 
 class ZonesScreen extends StatefulWidget {
   final String serverIp;

@@ -14,8 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pettrack_app/l10n/app_localizations.dart';
 import '../theme/colors.dart';
 import '../services/notification_service.dart';
-import 'package:encrypt/encrypt.dart' as enc;
-import 'package:crypto/crypto.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String serverIp;
@@ -293,7 +291,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 newBat < _batteryLevel &&
                 !_hasAlertedBattery) {
               _hasAlertedBattery = true;
-              final l10n = AppLocalizations.of(context)!;
               debugPrint("Battery Low: $newBat");
             }
             if (newBat > _batteryThreshold || _isCharging) {
@@ -837,7 +834,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final file = await File('${tempDir.path}/pet_snapshot_${DateTime.now().millisecondsSinceEpoch}.png').create();
       await file.writeAsBytes(buffer);
 
-      final result = await Share.shareXFiles(
+      // ignore: deprecated_member_use
+      await Share.shareXFiles(
         [XFile(file.path)],
         text: 'Look what my pet is doing!',
       );
@@ -1050,6 +1048,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildStatCard(
     BuildContext context,
     IconData icon,
@@ -1221,6 +1220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // ignore: unused_element
   String _getFavoriteZone() {
     if (_activities.isEmpty) return "--";
     final zoneCounts = <String, int>{};
@@ -1236,6 +1236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return fav.length > 8 ? '${fav.substring(0, 8)}...' : fav;
   }
 
+  // ignore: unused_element
   String _getLastSeen(AppLocalizations l10n) {
     if (_activities.isEmpty) return "-";
     final lastEv = _activities.first;

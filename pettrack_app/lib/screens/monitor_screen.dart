@@ -72,7 +72,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
     try {
       _controller = CameraController(
         cameras[0],
-        ResolutionPreset.low,
+        ResolutionPreset.high,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
@@ -250,7 +250,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
       if (boundary == null) return;
 
-      final image = await boundary.toImage(pixelRatio: 0.4);
+      final image = await boundary.toImage(pixelRatio: 1.0);
 
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final bytes = byteData?.buffer.asUint8List();
@@ -304,11 +304,10 @@ class _MonitorScreenState extends State<MonitorScreen> {
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
               await prefs.remove('app_mode');
-              if (mounted) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                );
-              }
+              if (!context.mounted) return;
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+              );
             },
           ),
 

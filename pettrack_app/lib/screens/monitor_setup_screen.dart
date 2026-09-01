@@ -84,7 +84,7 @@ class _MonitorSetupScreenState extends State<MonitorSetupScreen> {
       await prefs.setString('app_mode', 'monitor');
       await _secureStorage.write(key: 'demo_pin', value: '8068');
 
-      if (!mounted) return;
+      if (!context.mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

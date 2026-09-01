@@ -1,1 +1,0 @@
-sed -i '' "1s/^/import 'dart:io';\nimport 'package:path_provider\/path_provider.dart';\nimport 'package:share_plus\/share_plus.dart';\n/" /Users/szbnce/pettrack/pettrack_app/lib/screens/dashboard_screen.dart

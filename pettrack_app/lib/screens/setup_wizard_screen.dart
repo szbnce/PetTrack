@@ -81,7 +81,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       await prefs.setString('app_mode', 'client');
       await _secureStorage.write(key: 'demo_pin', value: '8068');
       
-      if (!mounted) return;
+      if (!context.mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainNavigationScreen(
           serverIp: 'demo_ip',
@@ -549,6 +549,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
+          // ignore: use_null_aware_elements
           if (child != null) child,
           if (child != null) const SizedBox(height: 32),
           actionButton,
