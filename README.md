@@ -223,6 +223,17 @@ Don't forget to give the project a star! Thanks again!
 
 
 
+<!-- AI USAGE DECLARATION -->
+## AI Usage Declaration
+
+This project was developed with the assistance of Artificial Intelligence (AI) coding assistants. AI was used to help accelerate the development process by generating boilerplate code, assisting with UI layouts, brainstorming solutions, and helping write documentation.
+
+While AI tools were utilized, the core architecture, design decisions, and ultimate responsibility for the codebase remain with the human author.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
 <!-- LICENSE -->
 ## License
 
