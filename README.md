@@ -1,186 +1,283 @@
-<p align="center">
-    <img src="https://placehold.co/400x150.png?text=PetTrack+Logo" alt="PetTrack Logo" width="300">
-</p>
 
-<h1 align="center">PetTrack</h1>
+<a id="readme-top"></a>
 
-<p align="center">
-    <strong>Trun your dusty old phone into a lightweight surveillance system for your small pets.</strong>
-</p>
+<!-- PROJECT SHIELDS -->
+<!--
+*** I'm using markdown "reference style" links for readability.
+*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
+*** See the bottom of this document for the declaration of the reference variables
+*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
+*** https://www.markdownguide.org/basic-syntax/#reference-style-links
+-->
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![Unlicense License][license-shield]][license-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
-<p align="center">
-    <img src="https://img.shields.io/badge/Status-MVP_in_progress-F2A724?style=flat-square" alt="Status">
-    <img src="https://img.shields.io/badge/Flutter-3.12+-02569B?style=flat-square" alt="Flutter">
-    <img src="https://img.shields.io/badge/Backend-Python_/_FastAPI-3776AB?style=flat-square" alt="Backend">
-    <img src="https://img.shields.io/github/license/szbnce/PetTrack?style=flat-square&color=blue" alt="License">
-    <a href="https://github.com/szbnce/stargazers"><img src="https://img.shields.io/github/stars/szbnce/PetTrack?style=flat-square" alt="Stars"></a>
-</p>
 
-<p align="center">
-    <a href="#-the-shiny-visuals">Screenshots</a>
-    <a href="#-project-phases">Project Phases</a>
-    <a href="#-features">Features</a>
-    <a href="#-quick-start">Quick Start</a>
-</p>
 
----
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/szbnce/PetTrack">
+    <img src="pictures/banner.png" alt="Logo" height="240">
+  </a>
 
-## 🚀 Why PetTrack?
+  <h3 align="center">PetTrack</h3>
 
-Why buy an expensive, cloud-locked pet camera when you already have the hardware? **PetTrack** breathes new life into your old Android phones by turning them into a dedicated, self-hosted monitor system for your pets.
+  <p align="center">
+    Your old phone is your new pet monitor!
+    <br />
+    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://pettrackdemo.szabence.com">Try PetTrack</a>
+    &middot;
+    <a href="https://github.com/szbnce/PetTrack/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+    &middot;
+    <a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+  </p>
+</div>
 
-- 🔒 **Own your data** - Everything goes through your own backend, no external clouds.
-- ♻️ **Upcycle hardware** - Put that old Android 7+ phone in your drawer to good use.
-- 🔋 **Battery and Thermal Aware** - Built-in telemetry ensures your old phone stays safe while streaming.
 
----
 
-# 🏗️ Project Phases
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
 
-This project just started out, there isn't a magical all-in-one working app *yet*. Development is broken into these phases:
 
-* 🟢 **Phase 1: The Monitor (HW/Data Collection) — *Finished***  
-  The goal is to get the old phone's camera reliably to the server. Includes WakeLock, battery monitoring, and auto-reconnects.
-* 🟡 **Phase 2: The Backend (The Brain) — *In Progress***
-  Once the data is being sent reliably, we use server-side logic to process it. This will be shoved into a Docker container.
-* 🟡 **Phase 3: The Frontend (The Viewers) - *In Progress***
-  We provide two identical ways to view the cameras: a **Native Android App** (Flutter) and a **Web Dashboard** (React PWA) for iOS and Desktop. Choose whichever fits you best!
 
----
-## ✨ Features
+<!-- ABOUT THE PROJECT -->
+## About The Project
 
-<table>
-<tr>
-<td width="50%" valign="top">
+In may of 2026, my brother got a rabbit as a gift for her goddaughter, but her mother wasn't very pleased and threw a tantrum, so he had to took the rabbit, and I took her in, her name is Berci, a lionhead dwarf rabbit, she is around 7-8 months old as I am writing this README.
 
-### 📱 Monitor App (The Camera)
-- **Live Video Streaming** (MJPEG) via WebSocket
-- **Resilient Connection**: Auto-reconnects and resumes streaming automatically if the backend drops.
-- **Battery & Charging Telemetry**: Kepp an eye on the old phone's health remotely.
-- **Sleep mode**: Dims the screen so doesn't light up the room / save OLED Burn-in and power while streaming.
-- **Localization & Theming**: Full Dark/Light mode support, English and Hungarian translations out of the box.
+<div align="center">
+  <img src="pictures/BerciBed.jpeg" alt="BerciBed" height="240">
+  <img src="pictures/BerciPortrait.png" alt="BerciPortrait" height="240">
+  <img src="pictures/BerciBody.jpg" alt="BerciBody" height="240">
+</div>
 
-</td>
-<td width="50%" valign="top">
+She is a very active and curious rabbit, and always finding loopholes around stuff, so when I was in school and working, I had no idea what she was up to, so I started searching for pet cameras, but they are expensive, sometimes even a paid subscription model, and I had lot's of phones laying around, with perfectly good cameras, WiFi, so I thought, why couldn't I make an IP-cam from those, and use that? I tried it, it worked, but it was not great. I mean, who would want to look at their beloved pets though an ugly, and not very user friendly application that was sometimes buggy, unstable? This is how PetTrack was born:
 
-### Client App / Web Dashboard
-- **Universal Access**: Use the native Android app (`.apk`) or the Web Dashboard (iOS/Desktop PWA). Both are identical in features!
-- **Live Feed Access**: Beautiful UI to keep track of your furry friends.
-- **Customizeable Zones**: Draw zones on the camera feed for motion detection and alerts.
-- **Localization & Theming**: Full Dark/Light mode support, English and Hungarian translations out of the box.
+<div align="center">
+  <img src="pictures/AndroidDashboard.jpg" alt="AndroidDashboard" height="480">
+  <img src="pictures/AndroidZones.jpg" alt="AndroidZones" height="480">
+  <img src="pictures/AndroidMedical.jpg" alt="AndroidMedical" height="480">
+  <img src="pictures/AndroidReplay.jpg" alt="AndroidReplay" height="480">
+  <img src="pictures/AndroidSettings.jpg" alt="AndroidSettings" height="480">
+</div>
 
-</td>
-</tr>
-</table>
+PetTrack is a lightweight Pet monitor that upcycles old phones, and uses them as Pet Monitors that you can put near their cage, and check up on them when you are not home, and more. 
 
----
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## 📸 The Shiny Visuals
+## Features
 
-### 📱 Monitor App
-<p align="center">
-  <img src="pictures/Monitor/DashboardDark.png" width="30%">
-  &nbsp; &nbsp;
-  <img src="pictures/Monitor/DashboardLight.png" width="30%">
-  &nbsp; &nbsp;
-  <img src="pictures/Monitor/Setup1.png" width="30%">
-</p>
+* Live video Stream
+* Take picture and send instantly
+* Set name, pet type, profile picture
+* Zone setting and pet tracking
+* Movement recordings that are replayable instantly and shareable
+* Activity log
+* Vaccine and Medication tracking
+* Android / iOS / Web / WearOS Support
 
-### 💻 Web Dashboard
-<p align="center">
-  <img src="pictures/Client/DashboardDark.jpg" width="30%">
-  &nbsp; &nbsp;
-  <img src="pictures/Client/DashboardLight.jpg" width="30%">
-  &nbsp; &nbsp;
-  <img src="pictures/Client/Zones.jpg" width="30%">
-</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
----
 
-## 🛠️ Quick Start (The Easy Way)
 
-The easiest way to get started is to use the pre-built apps and Docker image.
+### Built With
 
-### Prerequisites
-* A machine running **Docker** and **Docker Compose**
-* An old Android Phone (The "Monitor") *(Minimal API requirement is 24, Android 7+)*
-* An Android phone (for the Client App) OR any device with a modern web browser (for the Web Dashboard).
+* [![Flutter][Flutter.dev]][Flutter-url]
+* [![Dart][Dart.dev]][Dart-url]
+* [![FastAPI][FastAPI.tiangolo]][FastAPI-url]
+* [![Python][Python.org]][Python-url]
+* [![OpenCV][OpenCV.org]][OpenCV-url]
+* [![SQLite][SQLite.org]][SQLite-url]
 
-```bash
-git clone https://github.com/szbnce/PetTrack.git
-cd PetTrack
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-# Copy the environment file and set your credentials
-cp pettrack_server/.env.example pettrack_server/.env
 
-# Build and start the backend
-docker-compose up --build -d
-```
-Your backend is now running!
 
-### 2. The Apps
-1. Install `PetTrack_Monitor.apk` on your old phone from the [Releases](https://github.com/szbnce/PetTrack/releases) page. *(Pro Tip: Enable "Autostart" and disable Battery Optimization in Android settings for a stable 24/7 stream).*
-2. **For Android users:** Install `PetTrack_Client.apk` on your main phone.
-3. **For iOS/Desktop users:** Open your browser and navigate to the server's IP address (port 8000 by default) to view the Web Dashboard. You can install it to your home screen as a PWA!
-4. Connect to your server IP and API Token, and you're good to go!
-
----
-
-## 💻 Build from Scratch (For Developers)
-
-If you want to modify the code or compile the apps yourself, follow these steps.
+<!-- GETTING STARTED -->
+## Getting Started
 
 ### Prerequisites
-* **Flutter SDK** installed on your development machine
-* **Docker** and **Docker Compose**
-  
-### 1. Clone the repository
-```bash
-git clone https://github.com/szbnce/PetTrack.git
-cd PetTrack
-```
 
-### 2. Compile the Apps
-Navigate to the app folders and build the APKs:
+* An old phone (Android 7+ / iPhone 6s+)
+* A PC/Server (Anything that is capable of running Docker, but there are scripts to run natively, outside docker)
+* [A DDNS service](https://www.noip.com) (optional)
 
-```bash
-# Build the Monitor App
-cd pettrack_monitor
-flutter pub get
-flutter build apk
-# The APK will be at build/app/outputs/flutter-apk/app-release.apk
+### Installation
+Docker:
 
-# Build the Client App (Android)
-cd ../pettrack_client
-flutter pub get
-flutter build apk
+1. Clone the repo
+   ```sh
+   git clone https://github.com/szbnce/PetTrack.git
+   ```
+2. Install  packages
+   ```sh
+   docker compose up -d --build pettrack
+   ```
+3. Check the logs for the 4 number PIN to access server
+   ```bash
+   docker logs pettrack
+   ```
+Your server should be reachable from the web at `http://<server_ip>:8000` (Both server and Web interface).
 
-# Build the Web Dashboard (iOS / Desktop)
-cd ../pettrack_web
-npm install
-npm run build
-```
+Natively (Linux, Windows, MacOS):
 
-### 3. Build and Run the Backend
-```bash
-# Edit pettrack_server/.env with your API Token first
-docker-compose up --build -d
-```
+1. Clone the repo
+   ```
+   git clone https://github.com/szbnce/PetTrack.git
+   ```
+2. Install  packages
+   ```
+   ./install_linux.sh / ./install_macos.sh / install_windows.bat
+   ```
+3. Run the server
+   ```
+   ./run_linux_and_macos.sh / run_windows.bat
+   ```
 
----
+### Now, the phone app:
+On phones, you can either use the Web interface and put a shortcut to it on your home screen or you can sideload the app to use natively.
 
-## ❓ Help
+Android:
 
-If you have any questions, issues, or suggestions, please open an [Issue](https://github.com/szbnce/PetTrack/issues) or [Discussion](https://github.com/szbnce/PetTrack/discussions) on GitHub.
+1. Download the APK from the [Releases page](https://github.com/szbnce/PetTrack/releases) on Github.
+2. Enable "Install from unknown sources" in your Android settings.
+3. Install the APK.
+4. Open the app, select your language, select if you want to use it as a Monitor or Client, then enter the IP and Port (On the Monitor phone, you should use the local IP, not the external IP, on the Client you should use the external IP, if DDNS is set up, or Tailscale.)
 
----
+iOS:
 
-## 📝 License
+1. Download the .iPA file from the [Releases page](https://github.com/szbnce/PetTrack/releases) on Github.
+2. Use a tool like [Sideloadly](https://sideloadly.io/) to install the .iPA file to your iOS device.
+    - Note that you will have to allow the developer account in the device management settings, and you will have to re-authorize the app every 7 days.
+3. Open the app, select your language, select if you want to use it as a Monitor or Client, then enter the IP and Port (On the Monitor phone, you should use the local IP, not the external IP, on the Client you should use the external IP, if DDNS is set up, or Tailscale.)
 
-This project is licensed under the **GPLv3 License**.
+Web:
 
----
+1. Open the [Web interface](https://pettrackdemo.szabence.com)
+2. Select your language, select if you want to use it as a Monitor or Client, then enter the IP and Port (On the Monitor phone, you should use the local IP, not the external IP, on the Client you should use the external IP, if DDNS is set up, or Tailscale.)
 
-<p align="center">
-  Made with ❤️ by <a href="https://github.com/szbnce">szbnce</a> for Pets and Pet Owners
-</p>
+WearOS:
+
+1. Download the .APK
+2. Turn on Wi-Fi
+3. Turn on Developer settings
+4. Turn on ADB debugging
+5. Connect the watch to your PC and authorize the ADB connection
+6. Open a terminal and run: `adb install <path_to_apk>`
+7. Open the app on the watch and paired phone
+8. In settings, scroll to the bottom, there is a Sync watch button, press it, and it will now work on the watch!
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+<!-- CONTRIBUTING -->
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Top contributors:
+
+<a href="https://github.com/szbnce/pettrack/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=szbnce/pettrack" alt="contrib.rocks image" />
+</a>
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- LICENSE -->
+## License
+
+Distributed under the GNU License. To read more, please refer to the `LICENSE` file.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- CONTACT -->
+## Contact
+
+Bence Szabó - [@szbnce](https://t.me/szbnce) - contact@szabence.com
+
+Project Link: [https://github.com/szbnce/pettrack](https://github.com/szbnce/pettrack)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments
+
+* [Stardance](https://stardance.hackclub.com)
+* [Img Shields](https://shields.io)
+* [Best-README-template](https://github.com/othneildrew/Best-README-Template)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[contributors-shield]: https://img.shields.io/github/contributors/szbnce/pettrack.svg?style=for-the-badge
+[contributors-url]: https://github.com/szbnce/pettrack/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/szbnce/pettrack.svg?style=for-the-badge
+[forks-url]: https://github.com/szbnce/pettrack/network/members
+[stars-shield]: https://img.shields.io/github/stars/szbnce/pettrack.svg?style=for-the-badge
+[stars-url]: https://github.com/szbnce/pettrack/stargazers
+[issues-shield]: https://img.shields.io/github/issues/szbnce/pettrack.svg?style=for-the-badge
+[issues-url]: https://github.com/szbnce/pettrack/issues
+[license-shield]: https://img.shields.io/github/license/szbnce/pettrack.svg?style=for-the-badge
+[license-url]: https://github.com/szbnce/pettrack/blob/master/LICENSE
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/szbnce
+[product-screenshot]: images/screenshot.png
+[Flutter.dev]: https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white
+[Flutter-url]: https://flutter.dev/
+[Dart.dev]: https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white
+[Dart-url]: https://dart.dev/
+[FastAPI.tiangolo]: https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white
+[FastAPI-url]: https://fastapi.tiangolo.com/
+[Python.org]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
+[Python-url]: https://python.org/
+[OpenCV.org]: https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white
+[OpenCV-url]: https://opencv.org/
+[SQLite.org]: https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white
+[SQLite-url]: https://sqlite.org/ 

@@ -69,6 +69,8 @@ def update_latest_frame(data: bytes):
 class PinRequest(BaseModel):
     pin: str
 
+failed_login_attempts = {}
+
 
 @router.get("/api/status")
 async def get_status():
@@ -126,9 +128,25 @@ async def set_pin(req: PinRequest, x_api_token: str = Header(None)):
     return {"status": "success"}
     
 @auth_router.post("/api/auth/login_pin")
-async def login_pin(req: PinRequest):
+async def login_pin(req: PinRequest, request: Request):
+    ip = request.client.host
+    now = time.time()
+    
+    if ip in failed_login_attempts:
+        attempts, last_time = failed_login_attempts[ip]
+        if now - last_time > 300:
+            failed_login_attempts[ip] = (0, now)
+        elif attempts >= 5:
+            raise HTTPException(status_code=429, detail="Too many failed attempts. Try again in 5 minutes.")
+            
     if req.pin != os.getenv("PETTRACK_WEB_PIN"):
+        attempts, _ = failed_login_attempts.get(ip, (0, now))
+        failed_login_attempts[ip] = (attempts + 1, now)
         raise HTTPException(status_code=401, detail="Invalid PIN")
+        
+    if ip in failed_login_attempts:
+        del failed_login_attempts[ip]
+        
     return {"secret": SECRET_TOKEN}
 
 
@@ -301,7 +319,8 @@ def range_requests_response(request: Request, file_path: str, content_type: str)
 @router.get("/api/replays/{filename}")
 async def get_replay_video(filename: str, request: Request):
     folder = "replays"
-    file_path = os.path.join(folder, filename)
+    safe_filename = os.path.basename(filename)
+    file_path = os.path.join(folder, safe_filename)
     if not os.path.exists(file_path) or not file_path.endswith(".mp4"):
         raise HTTPException(status_code=404, detail="Replay not found")
     
