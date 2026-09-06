@@ -1,11 +1,11 @@
 {
-    "name": "pettrack_app",
-    "short_name": "pettrack_app",
+    "name": "PetTrack",
+    "short_name": "PetTrack",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Your old phone is your new pet monitor!",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

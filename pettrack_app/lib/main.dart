@@ -7,6 +7,7 @@ import 'package:pettrack_app/l10n/app_localizations.dart';
 import 'package:camera/camera.dart';
 import 'dart:io' show Platform;
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'theme/app_theme.dart';
 import 'screens/language_screen.dart';
@@ -57,7 +58,7 @@ void main() async {
   }
 
   bool isWatch = false;
-  if (Platform.isAndroid) {
+  if (!kIsWeb && Platform.isAndroid) {
     try {
       final deviceInfo = DeviceInfoPlugin();
       final androidInfo = await deviceInfo.androidInfo;
