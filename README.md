@@ -61,6 +61,7 @@
       </ul>
     </li>
     <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#privacy-policy">Privacy Policy</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -229,6 +230,15 @@ Don't forget to give the project a star! Thanks again!
 This project was developed with the assistance of Artificial Intelligence (AI) coding assistants. AI was used to help accelerate the development process by generating boilerplate code, assisting with UI layouts, brainstorming solutions, and helping write documentation.
 
 While AI tools were utilized, the core architecture, design decisions, and ultimate responsibility for the codebase remain with the human author.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- PRIVACY POLICY -->
+## Privacy Policy
+
+You can read the Privacy Policy for PetTrack by referring to the [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md) file.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
